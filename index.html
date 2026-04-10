@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JACKPOT SIM</title>
+<title>DIVUINE JACKPOT</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -532,45 +532,77 @@ const SLOT_SYMBOLS = [
 // ─── ITEM DATABASE ──────────────────────────────────────────
 // Each: { name, icon, rarity, weight }
 // Rarity: common|uncommon|rare|epic|mythic|legendary|jackpot|divine
+const RARITIES = {
+  common:    { weight: 30 },
+  uncommon:  { weight: 15 },
+  rare:      { weight: 7 },
+  epic:      { weight: 3.5 },
+  mythic:    { weight: 1.5 },
+  legendary: { weight: 0.5 },
+  jackpot:   { weight: 0.1 },
+  divine:    { weight: 0.09 },
+};
+
 const ITEMS = [
   // Common
-  {name:"Rusty Knife",    icon:"🔪",rarity:"common",   weight:30},
-  {name:"Worn Cap",       icon:"🧢",rarity:"common",   weight:28},
-  {name:"Cracked Mug",   icon:"☕",rarity:"common",   weight:27},
-  {name:"Grey Stone",    icon:"🪨",rarity:"common",   weight:25},
-  {name:"Old Coin",      icon:"🪙",rarity:"common",   weight:22},
-  {name:"Dull Wrench",   icon:"🔧",rarity:"common",   weight:20},
+  { name: "Rusty Knife", icon: "🔪", rarity: "common" },
+  { name: "Worn Cap", icon: "🧢", rarity: "common" },
+  { name: "Cracked Mug", icon: "☕", rarity: "common" },
+  { name: "Grey Stone", icon: "🪨", rarity: "common" },
+  { name: "Old Coin", icon: "🪙", rarity: "common" },
+  { name: "Dull Wrench", icon: "🔧", rarity: "common" },
+  { name: "Random Track", icon: "🔊", rarity: "common" },
+
   // Uncommon
-  {name:"Emerald Shard", icon:"💚",rarity:"uncommon", weight:14},
-  {name:"Silver Ring",   icon:"💍",rarity:"uncommon", weight:13},
-  {name:"Iron Gauntlet", icon:"🥊",rarity:"uncommon", weight:12},
-  {name:"Scroll Fragment",icon:"📜",rarity:"uncommon", weight:11},
-  {name:"Lucky Dice",    icon:"🎲",rarity:"uncommon", weight:10},
+  { name: "Emerald Shard", icon: "💚", rarity: "uncommon" },
+  { name: "Silver Ring", icon: "💍", rarity: "uncommon" },
+  { name: "Iron Gauntlet", icon: "🥊", rarity: "uncommon" },
+  { name: "Scroll Fragment", icon: "📜", rarity: "uncommon" },
+  { name: "Lucky Dice", icon: "🎲", rarity: "uncommon" },
+
   // Rare
-  {name:"Sapphire Orb",  icon:"🔵",rarity:"rare",     weight:7},
-  {name:"Dragon Scale",  icon:"🐉",rarity:"rare",     weight:6},
-  {name:"Electric Coil", icon:"⚡",rarity:"rare",     weight:6},
-  {name:"Rune Tablet",   icon:"🧿",rarity:"rare",     weight:5},
-  {name:"Neon Blade",    icon:"🗡️",rarity:"rare",     weight:5},
+  { name: "Sapphire Orb", icon: "🔵", rarity: "rare" },
+  { name: "Dragon Scale", icon: "🐉", rarity: "rare" },
+  { name: "Electric Coil", icon: "⚡", rarity: "rare" },
+  { name: "Rune Tablet", icon: "🧿", rarity: "rare" },
+  { name: "Neon Blade", icon: "🗡️", rarity: "rare" },
+  { name: "Code Commit", icon: "🫸", rarity: "rare" },
+
   // Epic
-  {name:"Phantom Eye",   icon:"👁️",rarity:"epic",     weight:3},
-  {name:"Void Shard",    icon:"🌀",rarity:"epic",     weight:3},
-  {name:"Ghost Cloak",   icon:"👻",rarity:"epic",     weight:2.5},
-  {name:"Crystal Heart", icon:"💎",rarity:"epic",     weight:2.5},
+  { name: "Phantom Eye", icon: "👁️", rarity: "epic" },
+  { name: "Void Shard", icon: "🌀", rarity: "epic" },
+  { name: "Ghost Cloak", icon: "👻", rarity: "epic" },
+  { name: "Crystal Heart", icon: "💎", rarity: "epic" },
+  { name: "Job Application", icon: "📝", rarity: "epic" },
+
   // Mythic
-  {name:"Inferno Core",  icon:"🔥",rarity:"mythic",   weight:1.5},
-  {name:"Blood Rune",    icon:"🩸",rarity:"mythic",   weight:1.2},
-  {name:"Shadow Crown",  icon:"👑",rarity:"mythic",   weight:1},
+  { name: "Inferno Core", icon: "🔥", rarity: "mythic" },
+  { name: "Blood Rune", icon: "🩸", rarity: "mythic" },
+  { name: "Shadow Crown", icon: "👑", rarity: "mythic" },
+
   // Legendary
-  {name:"Sol Meteor",    icon:"☄️",rarity:"legendary",weight:0.5},
-  {name:"Eternal Bloom", icon:"🌸",rarity:"legendary",weight:0.4},
-  {name:"Aether Sword",  icon:"⚔️",rarity:"legendary",weight:0.35},
-  // Jackpot
-  {name:"JACKPOT",       icon:"🃏",rarity:"jackpot",  weight:0.08},
-  {name:"JACKPOT",       icon:"💰",rarity:"jackpot",  weight:0.07},
+  { name: "Solar Meteor", icon: "☄️", rarity: "legendary" },
+  { name: "Eternal Bloom", icon: "🌸", rarity: "legendary" },
+  { name: "Aether Sword", icon: "⚔️", rarity: "legendary" },
+  { name: "Hollow Core", icon: "🟣", rarity: "legendary" },
+
+  // Jackpot (unique outcomes)
+  { name: "Jackpot Joker", icon: "🃏", rarity: "jackpot" },
+  { name: "Golden Jackpot", icon: "💰", rarity: "jackpot" },
+
   // Divine
-  {name:"God's Crown",   icon:"👸",rarity:"divine",   weight:0.02},
+  {
+    name: "Twelve-Spired Gold: Divergent Sila, Divine Emperor Crown",
+    icon: "👑",
+    rarity: "divine",
+  },
 ];
+
+// Attach weights dynamically
+const ITEMS_WITH_WEIGHTS = ITEMS.map(item => ({
+  ...item,
+  weight: RARITIES[item.rarity].weight
+}));
 
 // ════════════════════════════════════════════════════════════
 //  STATE
