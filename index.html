@@ -330,19 +330,19 @@ body.divine-mode .btn-roll{background:linear-gradient(135deg,#aaa,#fff);color:#0
     <div class="update-modal">
       <div class="update-modal-head">
         <!-- ════ UPDATE VERSION TAG ════ -->
-        <span class="update-ver">v1.5 — Mobile &amp; Rarity Update</span>
+        <span class="update-ver">v2 — Mobile &amp; Rarity Update</span>
         <!-- ════════════════════════════ -->
         <button class="update-close" id="updateClose">✕</button>
       </div>
       <!-- ════ UPDATE NOTES — edit below freely ════ -->
       <div class="update-modal-body">
-        <strong>What's new in v1.5:</strong>
+        <strong>What's new in v2:</strong>
         <ul>
-          <li><strong>Rarity-based drop system</strong> — each rarity has a flat drop chance; items within a rarity are picked randomly for more variety</li>
-          <li><strong>Mobile navigation</strong> — bottom tab bar with Roll, Inventory, Extras, and Stats pages so nothing feels crowded</li>
-          <li><strong>Fixed reel center lines</strong> — indicator now spans exactly one card so the result always lands cleanly inside</li>
-          <li><strong>Update popup</strong> — this window! Closes automatically after 6 seconds, or tap ✕ to dismiss</li>
-          <li><strong>Hakari Mode is green</strong>, Divine Mode is white — each has its own visual theme</li>
+          <li>Rarity-based drop system #simplelifestyle — more easy to edit now lmao</li>
+          <li>Mobile players can gamble better — bottom tab bar with Roll, Inventory, Extras, and Stats pages so nothing feels crowded</li>
+          <li>Fixed thos annoying lines — indicator now spans exactly one card LIKE I ASKED THAT AII</li>
+          <li>pop up shi cus it looks cool — this window! Closes automatically after 6 seconds(maybe), or tap ✕ to dismiss</li>
+          <li>Hakari is green..., Divine Mode is white...(haha,angel reference)each has its own visual theme(jjk references ahah)</li>
         </ul>
       </div>
       <!-- ════════════════════════════════════════ -->
@@ -588,14 +588,14 @@ const INVEST_RATE_PER_MIN= 2;
 // These must add up to 100. Change these freely.
 // Items within each rarity are chosen at random (equal chance).
 const RARITY_CHANCES = {
-  common:    45,
+  common:    55,
   uncommon:  25,
-  rare:      15,
-  epic:       8,
-  mythic:     4,
-  legendary:  2,
-  jackpot:  0.85,
-  divine:   0.15,
+  rare:      12,
+  epic:       5,
+  mythic:     2,
+  legendary:  0.8,
+  jackpot:    0.15,
+  divine:     0.05,
 };
 
 const SLOT_SYMBOLS = [
@@ -617,6 +617,7 @@ const ITEMS = [
   {name:"Grey Stone",    icon:"🪨",rarity:"common"},
   {name:"Old Coin",      icon:"🪙",rarity:"common"},
   {name:"Dull Wrench",   icon:"🔧",rarity:"common"},
+  {name:"Broken window",  icon:"🪟",rarity:"common"},
   // Uncommon
   {name:"Emerald Shard", icon:"💚",rarity:"uncommon"},
   {name:"Silver Ring",   icon:"💍",rarity:"uncommon"},
@@ -638,15 +639,16 @@ const ITEMS = [
   {name:"Inferno Core",  icon:"🔥",rarity:"mythic"},
   {name:"Blood Rune",    icon:"🩸",rarity:"mythic"},
   {name:"Shadow Crown",  icon:"👑",rarity:"mythic"},
+  {name:"chromatic dagger",  icon:"🗡️",rarity:"mythic"},
   // Legendary
   {name:"Sol Meteor",    icon:"☄️",rarity:"legendary"},
   {name:"Eternal Bloom", icon:"🌸",rarity:"legendary"},
-  {name:"Aether Sword",  icon:"⚔️",rarity:"legendary"},
+  {name:"netther Sword",  icon:"⚔️",rarity:"legendary"},
   // Jackpot
   {name:"JACKPOT",       icon:"🃏",rarity:"jackpot"},
-  {name:"JACKPOT",       icon:"💰",rarity:"jackpot"},
+  {name:"JACKPOT BAG",       icon:"💰",rarity:"jackpot"},
   // Divine
-  {name:"God's Crown",   icon:"👸",rarity:"divine"},
+  {name:"Twelve-Spired Gold: Divergent Sila Divine Emperor God’s Crown",   icon:"👑",rarity:"divine"},
 ];
 
 // ════════════════════════════════════════════════════════════
