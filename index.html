@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JACKPOT SIM</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --panel: #111118; --border: #1e1e2e;
+    --accent: #e8c84a; --accent2: #f0a500; --glow: #e8c44a55;
+    --text: #e0ddf0; --muted: #5a5870;
+    --common: #8a9bb5; --uncommon: #4caf7d; --rare: #5b8ef0;
+    --epic: #a855f7; --mythic: #ef4444; --legendary: #f97316;
+    --jackpot: #e8c84a; --hakari: #ff6bff; --admin: #00e5ff;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh; overflow-x: hidden; transition: background 0.4s;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 80% 40% at 50% -10%, #e8c44a18 0%, transparent 60%),
+      repeating-linear-gradient(0deg,transparent,transparent 60px,#ffffff03 60px,#ffffff03 61px),
+      repeating-linear-gradient(90deg,transparent,transparent 60px,#ffffff03 60px,#ffffff03 61px);
+    pointer-events:none; z-index:0; transition: background 0.4s;
+  }
+  body.hakari-mode::before {
+    background:
+      radial-gradient(ellipse 80% 40% at 50% -10%, #ff6bff28 0%, transparent 60%),
+      repeating-linear-gradient(0deg,transparent,transparent 60px,#ff6bff05 60px,#ff6bff05 61px),
+      repeating-linear-gradient(90deg,transparent,transparent 60px,#ff6bff05 60px,#ff6bff05 61px);
+  }
+
+  /* ── HEADER ── */
+  header {
+    position:relative; z-index:10;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:13px 26px; border-bottom:1px solid var(--border);
+    background:#0d0d14cc; backdrop-filter:blur(12px);
+    flex-wrap:wrap; gap:10px;
+  }
+  .logo { font-family:'Orbitron',monospace; font-size:1.2rem; font-weight:900; letter-spacing:.15em; color:var(--accent); text-shadow:0 0 20px var(--glow); }
+  .logo span { color:var(--text); opacity:.5; font-weight:400; font-size:.8em; }
+  .header-right { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+
+  #hakariBadge {
+    display:none; align-items:center; gap:6px;
+    background:#ff6bff22; border:1px solid var(--hakari); border-radius:6px; padding:5px 13px;
+    font-family:'Orbitron',monospace; font-size:.65rem; font-weight:700; letter-spacing:.1em;
+    color:var(--hakari); text-shadow:0 0 10px var(--hakari); animation:hakariPulse 1.4s ease-in-out infinite;
+  }
+  #hakariBadge.active { display:flex; }
+  @keyframes hakariPulse { 0%,100%{box-shadow:0 0 8px #ff6bff44} 50%{box-shadow:0 0 22px #ff6bff99} }
+
+  .balance-box {
+    display:flex; align-items:center; gap:9px;
+    background:#0d0d14; border:1px solid var(--border); border-radius:6px; padding:7px 15px;
+  }
+  .balance-label { font-size:.68rem; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; }
+  .balance-amount { font-family:'Orbitron',monospace; font-size:1rem; font-weight:700; color:var(--accent); transition:color .3s; }
+  body.hakari-mode .balance-amount { color:var(--hakari); }
+  .balance-h { font-size:.8em; opacity:.7; }
+
+  #rebirthBadge {
+    display:flex; align-items:center; gap:5px;
+    background:#ffffff08; border:1px solid var(--border); border-radius:6px; padding:5px 11px;
+    font-family:'Orbitron',monospace; font-size:.65rem; color:var(--muted);
+  }
+  #rebirthBadge .rb-count { color:var(--accent); font-weight:700; }
+
+  /* admin toggle btn in header */
+  #btnAdminToggle {
+    font-family:'Orbitron',monospace; font-size:.6rem; font-weight:700; letter-spacing:.1em;
+    padding:5px 11px; border-radius:5px; border:1px solid #00e5ff44;
+    background:transparent; color:#00e5ff88; cursor:pointer; transition:all .15s; text-transform:uppercase;
+  }
+  #btnAdminToggle:hover { border-color:var(--admin); color:var(--admin); box-shadow:0 0 12px #00e5ff33; }
+  #btnAdminToggle.on { border-color:var(--admin); color:var(--admin); background:#00e5ff14; box-shadow:0 0 14px #00e5ff44; }
+
+  /* save badge */
+  #saveBadge {
+    font-size:.62rem; color:var(--uncommon); letter-spacing:.06em;
+    opacity:0; transition:opacity .4s;
+  }
+  #saveBadge.show { opacity:1; }
+
+  /* ── MAIN ── */
+  main { position:relative; z-index:1; max-width:1140px; margin:0 auto; padding:24px 18px 60px; }
+
+  /* ── STATS ── */
+  .stats-row { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:15px; }
+  @media(max-width:700px){ .stats-row{ grid-template-columns:repeat(3,1fr); } }
+  @media(max-width:460px){ .stats-row{ grid-template-columns:repeat(2,1fr); } }
+  .stat-box { background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:11px 13px; text-align:center; }
+  .stat-label { font-size:.58rem; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-bottom:3px; }
+  .stat-value { font-family:'Orbitron',monospace; font-size:.9rem; font-weight:700; color:var(--accent); }
+  .stat-value.neg { color:var(--mythic); }
+  .stat-value.pos { color:var(--uncommon); }
+  .stat-value.purple { color:var(--hakari); }
+
+  /* ── ADMIN PANEL ── */
+  #adminPanel {
+    display:none; background:var(--panel); border:1px solid var(--admin);
+    border-radius:12px; overflow:hidden; margin-bottom:15px;
+    box-shadow:0 0 30px #00e5ff1a;
+  }
+  #adminPanel.open { display:block; }
+  .admin-head {
+    padding:10px 20px; border-bottom:1px solid #00e5ff22;
+    background:#00e5ff0a;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .admin-title { font-family:'Orbitron',monospace; font-size:.7rem; letter-spacing:.15em; color:var(--admin); text-transform:uppercase; }
+  .admin-body { padding:16px 20px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
+
+  .admin-group { display:flex; flex-direction:column; gap:5px; }
+  .admin-group label { font-size:.65rem; color:var(--muted); letter-spacing:.08em; text-transform:uppercase; }
+  .admin-input {
+    font-family:'Orbitron',monospace; font-size:.8rem; font-weight:700;
+    background:#08080f; border:1px solid var(--border); border-radius:5px;
+    color:var(--text); padding:7px 12px; width:130px; outline:none;
+    transition: border-color .15s;
+  }
+  .admin-input:focus { border-color:var(--admin); }
+
+  .admin-btn-row { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; }
+
+  .btn-admin {
+    font-family:'Orbitron',monospace; font-size:.65rem; font-weight:700;
+    letter-spacing:.1em; padding:8px 16px; border-radius:5px; border:none;
+    cursor:pointer; transition:all .15s; text-transform:uppercase;
+  }
+  .btn-admin:active { transform:scale(.97); }
+  .btn-admin-cyan { background:#00e5ff22; border:1px solid var(--admin); color:var(--admin); }
+  .btn-admin-cyan:hover { background:#00e5ff33; box-shadow:0 0 14px #00e5ff44; }
+  .btn-admin-gold { background:#e8c84a22; border:1px solid var(--accent); color:var(--accent); }
+  .btn-admin-gold:hover { background:#e8c84a33; }
+  .btn-admin-purple { background:#ff6bff22; border:1px solid var(--hakari); color:var(--hakari); }
+  .btn-admin-purple:hover { background:#ff6bff33; }
+  .btn-admin-red { background:#ef444422; border:1px solid var(--mythic); color:var(--mythic); }
+  .btn-admin-red:hover { background:#ef444433; }
+  .btn-admin-green { background:#4caf7d22; border:1px solid var(--uncommon); color:var(--uncommon); }
+  .btn-admin-green:hover { background:#4caf7d33; }
+
+  .admin-sep { width:1px; height:40px; background:var(--border); margin:0 4px; align-self:center; }
+
+  /* ── REEL ── */
+  .reel-section {
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:12px; overflow:hidden; margin-bottom:15px; transition:border-color .3s;
+  }
+  body.hakari-mode .reel-section { border-color:#ff6bff55; }
+  .reel-header {
+    padding:11px 20px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .reel-title { font-family:'Orbitron',monospace; font-size:.7rem; letter-spacing:.15em; color:var(--muted); text-transform:uppercase; }
+  .roll-cost { font-size:.75rem; color:var(--muted); }
+  .roll-cost strong { color:var(--accent); font-family:'Orbitron',monospace; }
+
+  .reel-window { position:relative; height:126px; overflow:hidden; background:#08080f; }
+  .reel-window::before {
+    content:''; position:absolute; left:50%; transform:translateX(-50%);
+    top:0; bottom:0; width:116px;
+    border-left:2px solid var(--accent); border-right:2px solid var(--accent);
+    z-index:10; pointer-events:none;
+    box-shadow:inset 0 0 28px #e8c44a22, 0 0 16px #e8c44a33;
+    transition:border-color .3s, box-shadow .3s;
+  }
+  body.hakari-mode .reel-window::before { border-color:var(--hakari); box-shadow:inset 0 0 28px #ff6bff22,0 0 16px #ff6bff55; }
+  .reel-window::after {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg,#08080f 0%,transparent 16%,transparent 84%,#08080f 100%);
+    z-index:9; pointer-events:none;
+  }
+  .reel-track { display:flex; align-items:center; height:100%; gap:6px; padding:0 6px; will-change:transform; }
+  .reel-item {
+    flex-shrink:0; width:104px; height:104px; border-radius:8px;
+    border:2px solid transparent; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:3px;
+    background:#111118; position:relative; overflow:hidden;
+  }
+  .reel-item .item-icon { font-size:2rem; line-height:1; }
+  .reel-item .item-name { font-size:.57rem; font-weight:600; letter-spacing:.05em; text-transform:uppercase; text-align:center; padding:0 4px; color:#aaa; }
+  .reel-item .item-value { font-family:'Orbitron',monospace; font-size:.55rem; font-weight:700; }
+  .r-common    { border-color:#8a9bb555; } .r-common    .item-value { color:var(--common); }
+  .r-uncommon  { border-color:#4caf7d55; } .r-uncommon  .item-value { color:var(--uncommon); }
+  .r-rare      { border-color:#5b8ef055; } .r-rare      .item-value { color:var(--rare); }
+  .r-epic      { border-color:#a855f755; } .r-epic      .item-value { color:var(--epic); }
+  .r-mythic    { border-color:#ef444455; } .r-mythic    .item-value { color:var(--mythic); }
+  .r-legendary { border-color:#f9731655; } .r-legendary .item-value { color:var(--legendary); }
+  .r-jackpot   { border-color:#e8c84a88; } .r-jackpot   .item-value { color:var(--jackpot); }
+  .r-jackpot .item-icon { filter:drop-shadow(0 0 10px #e8c84a); }
+  body.hakari-mode .r-mythic    { box-shadow:0 0 10px #ef444422; }
+  body.hakari-mode .r-legendary { box-shadow:0 0 10px #f9731622; }
+  body.hakari-mode .r-jackpot   { box-shadow:0 0 14px #e8c84a44; }
+
+  /* result pop */
+  .result-pop { text-align:center; padding:6px 0 0; min-height:32px; }
+  .result-pop .rp-name { font-family:'Orbitron',monospace; font-size:1rem; font-weight:700; animation:popIn .3s cubic-bezier(.34,1.56,.64,1); }
+  .result-pop .rp-rarity { font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+  @keyframes popIn { from{transform:scale(.6);opacity:0} to{transform:scale(1);opacity:1} }
+
+  /* roll count */
+  .roll-count-bar { display:flex; gap:7px; align-items:center; justify-content:center; padding:6px 20px 3px; }
+  .roll-count-label { font-size:.7rem; color:var(--muted); letter-spacing:.08em; }
+  .roll-count-btn {
+    font-family:'Rajdhani',sans-serif; font-size:.76rem; font-weight:700;
+    padding:4px 11px; border-radius:4px; border:1px solid var(--border);
+    background:transparent; color:var(--muted); cursor:pointer; transition:all .12s;
+  }
+  .roll-count-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .roll-count-btn.active { background:#e8c44a22; border-color:var(--accent); color:var(--accent); }
+
+  /* controls */
+  .controls { display:flex; align-items:center; justify-content:center; gap:12px; padding:14px 20px; border-top:1px solid var(--border); }
+  .btn {
+    font-family:'Orbitron',monospace; font-size:.7rem; font-weight:700;
+    letter-spacing:.12em; padding:10px 20px; border-radius:6px; border:none;
+    cursor:pointer; transition:all .15s; text-transform:uppercase;
+  }
+  .btn:active { transform:scale(.97); }
+  .btn:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+  .btn-roll {
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    color:#0a0a0f; font-size:.82rem; padding:12px 40px; box-shadow:0 0 26px #e8c44a44;
+  }
+  .btn-roll:hover:not(:disabled) { box-shadow:0 0 40px #e8c44a88; }
+  body.hakari-mode .btn-roll { background:linear-gradient(135deg,#cc44cc,var(--hakari)); box-shadow:0 0 26px #ff6bff44; }
+  body.hakari-mode .btn-roll:hover:not(:disabled) { box-shadow:0 0 42px #ff6bff88; }
+  .btn-secondary {
+    background:transparent; color:var(--muted); border:1px solid var(--border);
+    font-family:'Rajdhani',sans-serif; font-weight:600; letter-spacing:.05em;
+  }
+  .btn-secondary:hover:not(:disabled) { border-color:var(--muted); color:var(--text); }
+
+  /* ── SLOT ── */
+  .slot-section { background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:15px; }
+  .slot-header { padding:11px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .slot-title { font-family:'Orbitron',monospace; font-size:.7rem; letter-spacing:.15em; color:var(--muted); text-transform:uppercase; }
+  .slot-info { font-size:.72rem; color:var(--muted); }
+  .slot-body { display:flex; align-items:center; justify-content:center; gap:20px; padding:15px 20px; flex-wrap:wrap; }
+  .slot-reels { display:flex; gap:8px; align-items:center; }
+  .slot-reel {
+    width:64px; height:64px; background:#08080f;
+    border:2px solid var(--border); border-radius:8px;
+    overflow:hidden; display:flex; align-items:center; justify-content:center;
+  }
+  .slot-face { font-size:1.9rem; line-height:1; display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+  .slot-reel.spinning .slot-face { animation:slotBlur .07s linear infinite; }
+  @keyframes slotBlur { 0%{transform:translateY(-7px);opacity:.6} 50%{transform:translateY(0);opacity:1} 100%{transform:translateY(7px);opacity:.6} }
+  .slot-reel.winner { border-color:var(--accent); box-shadow:0 0 14px #e8c44a66; }
+  .slot-sep { font-size:1.2rem; color:var(--muted); font-weight:900; }
+  .slot-result-text { font-family:'Orbitron',monospace; font-size:.74rem; font-weight:700; text-align:center; min-width:160px; line-height:1.5; }
+  .bonus-pool { font-size:.7rem; color:var(--uncommon); font-family:'Orbitron',monospace; text-align:center; min-width:80px; }
+  .bonus-pool span { display:block; font-size:1.35rem; font-weight:900; }
+
+  /* ── REBIRTH ── */
+  .rebirth-section { background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:15px; }
+  .rebirth-header { padding:11px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .rebirth-title { font-family:'Orbitron',monospace; font-size:.7rem; letter-spacing:.15em; color:var(--muted); text-transform:uppercase; }
+  .rebirth-body { padding:15px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; }
+  .rebirth-info { flex:1; min-width:200px; }
+  .rebirth-count-display { font-family:'Orbitron',monospace; font-size:1.45rem; font-weight:900; color:var(--accent); }
+  .rebirth-sub { font-size:.73rem; color:var(--muted); margin-top:3px; }
+  .rebirth-sub strong { color:var(--text); }
+  .rebirth-perks { display:flex; flex-direction:column; gap:5px; flex:1; min-width:180px; }
+  .perk-row { display:flex; align-items:center; gap:7px; font-size:.7rem; color:var(--muted); }
+  .perk-row .perk-icon { font-size:.95rem; }
+  .perk-row strong { color:var(--uncommon); }
+  .rebirth-right { display:flex; flex-direction:column; align-items:flex-end; gap:7px; }
+  .rebirth-cost-label { font-size:.66rem; color:var(--muted); text-align:right; }
+  .rebirth-cost-val { font-family:'Orbitron',monospace; font-size:1.05rem; font-weight:700; color:var(--mythic); }
+  .btn-rebirth { background:linear-gradient(135deg,#7a1a1a,#ef4444); color:#fff; font-size:.7rem; padding:10px 22px; box-shadow:0 0 16px #ef444433; }
+  .btn-rebirth:hover:not(:disabled) { box-shadow:0 0 28px #ef444466; }
+
+  .hakari-bar-wrap { width:100%; height:3px; background:#ffffff08; border-radius:2px; overflow:hidden; margin-top:5px; display:none; }
+  .hakari-bar { height:100%; background:linear-gradient(90deg,#cc44cc,var(--hakari)); border-radius:2px; transition:width 1s linear; }
+
+  /* ── REBIRTH OVERLAY ── */
+  #rebirthOverlay { display:none; position:fixed; inset:0; z-index:200; background:#000000cc; align-items:center; justify-content:center; }
+  #rebirthOverlay.active { display:flex; }
+  .rb-modal {
+    background:var(--panel); border:2px solid var(--mythic); border-radius:16px;
+    padding:32px 36px; text-align:center; max-width:420px; width:90%;
+    box-shadow:0 0 60px #ef444466; animation:popIn .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  .rb-modal h2 { font-family:'Orbitron',monospace; font-size:1.2rem; font-weight:900; color:var(--mythic); margin-bottom:11px; }
+  .rb-modal p { font-size:.8rem; color:var(--muted); line-height:1.65; margin-bottom:18px; }
+  .rb-modal p strong { color:var(--text); }
+  .rb-modal-btns { display:flex; gap:12px; justify-content:center; }
+
+  /* ── BOTTOM GRID ── */
+  .bottom-grid { display:grid; grid-template-columns:1fr 315px; gap:15px; }
+  @media(max-width:740px){ .bottom-grid{ grid-template-columns:1fr; } }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .panel-head { padding:11px 17px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .panel-title { font-family:'Orbitron',monospace; font-size:.65rem; letter-spacing:.15em; color:var(--muted); text-transform:uppercase; }
+  .inv-count { font-size:.7rem; color:var(--muted); }
+  .inv-count strong { color:var(--text); }
+  .inv-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:7px; padding:13px; max-height:320px; overflow-y:auto; }
+  .inv-grid::-webkit-scrollbar { width:3px; }
+  .inv-grid::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  .inv-card { background:#0d0d16; border:1px solid var(--border); border-radius:7px; padding:8px 5px 6px; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; transition:all .14s; position:relative; }
+  .inv-card:hover { border-color:#ffffff33; transform:translateY(-2px); }
+  .inv-card:hover .sell-hint { opacity:1; }
+  .sell-hint { position:absolute; inset:0; background:#00000088; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.6rem; font-weight:700; letter-spacing:.08em; color:var(--uncommon); opacity:0; transition:opacity .14s; text-transform:uppercase; }
+  .inv-icon { font-size:1.45rem; line-height:1; }
+  .inv-name { font-size:.52rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:#888; text-align:center; }
+  .inv-val { font-family:'Orbitron',monospace; font-size:.53rem; font-weight:700; }
+  .inv-qty { position:absolute; top:3px; right:4px; font-size:.55rem; font-weight:700; color:var(--text); background:#ffffff18; border-radius:3px; padding:0 3px; }
+  .inv-empty { grid-column:1/-1; text-align:center; padding:34px 0; color:var(--muted); font-size:.8rem; letter-spacing:.08em; }
+
+  /* odds */
+  .odds-list { padding:9px 12px; display:flex; flex-direction:column; gap:5px; }
+  .odds-row { display:flex; align-items:center; justify-content:space-between; padding:5px 8px; border-radius:5px; background:#0d0d16; border:1px solid var(--border); }
+  .odds-left { display:flex; align-items:center; gap:7px; }
+  .odds-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .odds-rarity { font-size:.67rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
+  .odds-right { display:flex; align-items:center; gap:10px; }
+  .odds-pct { font-family:'Orbitron',monospace; font-size:.62rem; color:var(--muted); }
+  .odds-sell { font-family:'Orbitron',monospace; font-size:.62rem; font-weight:700; }
+  .odds-boosted { font-size:.57rem; color:var(--hakari); }
+
+  /* toast */
+  #toast {
+    position:fixed; bottom:22px; left:50%;
+    transform:translateX(-50%) translateY(80px);
+    background:#1a1a26; border:1px solid var(--border); border-radius:8px;
+    padding:10px 20px; font-size:.8rem; font-weight:600; letter-spacing:.06em;
+    color:var(--text); z-index:999; transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+    pointer-events:none; white-space:nowrap;
+  }
+  #toast.show { transform:translateX(-50%) translateY(0); }
+
+  @keyframes jackpotFlash { 0%,100%{background:var(--bg)} 20%{background:#e8c44a18} 40%{background:var(--bg)} 60%{background:#e8c44a12} }
+  @keyframes hakariFlash  { 0%{background:var(--bg)} 15%{background:#ff6bff28} 30%{background:var(--bg)} 45%{background:#ff6bff18} 60%{background:var(--bg)} 75%{background:#ff6bff10} 100%{background:var(--bg)} }
+  .jackpot-flash { animation:jackpotFlash .8s ease; }
+  .hakari-anim   { animation:hakariFlash 1.2s ease; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">JACKPOT<span>SIM</span></div>
+  <div class="header-right">
+    <span id="saveBadge">✓ Saved</span>
+    <button id="btnAdminToggle">⚙ Admin</button>
+    <div id="hakariBadge">⚡ HAKARI MODE — <span id="hakariTimer">—</span></div>
+    <div id="rebirthBadge">🔁 Rebirth <span class="rb-count" id="rbCountBadge">0</span></div>
+    <div class="balance-box">
+      <span class="balance-label">Balance</span>
+      <span class="balance-amount" id="balanceDisplay">250<span class="balance-h"> H</span></span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-label">Rolls</div><div class="stat-value" id="statRolls">0</div></div>
+    <div class="stat-box"><div class="stat-label">Spent</div><div class="stat-value neg" id="statSpent">0 H</div></div>
+    <div class="stat-box"><div class="stat-label">Earned</div><div class="stat-value pos" id="statEarned">0 H</div></div>
+    <div class="stat-box"><div class="stat-label">Best Drop</div><div class="stat-value" id="statBest">—</div></div>
+    <div class="stat-box"><div class="stat-label">Rebirths</div><div class="stat-value purple" id="statRebirths">0</div></div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel">
+    <div class="admin-head">
+      <span class="admin-title">⚙ Admin Panel</span>
+      <span style="font-size:.62rem;color:#00e5ff66;">Changes apply instantly — not saved to stats</span>
+    </div>
+    <div class="admin-body">
+      <!-- Add money -->
+      <div class="admin-group">
+        <label>Add H</label>
+        <input class="admin-input" id="adminMoneyAmt" type="number" value="1000" min="1">
+      </div>
+      <div class="admin-btn-row">
+        <button class="btn-admin btn-admin-cyan" id="btnAdminMoney">+ Add Money</button>
+        <button class="btn-admin btn-admin-gold" id="btnAdminMax">Set Max (999,999)</button>
+      </div>
+
+      <div class="admin-sep"></div>
+
+      <!-- Force roll -->
+      <div class="admin-group">
+        <label>Force Rarity</label>
+        <select class="admin-input" id="adminRarity" style="cursor:pointer">
+          <option value="common">Common</option>
+          <option value="uncommon">Uncommon</option>
+          <option value="rare">Rare</option>
+          <option value="epic">Epic</option>
+          <option value="mythic">Mythic</option>
+          <option value="legendary">Legendary</option>
+          <option value="jackpot" selected>Jackpot 🃏</option>
+        </select>
+      </div>
+      <div class="admin-btn-row">
+        <button class="btn-admin btn-admin-gold" id="btnAdminForceRoll">Force Roll</button>
+      </div>
+
+      <div class="admin-sep"></div>
+
+      <!-- Hakari / bonus / rebirth -->
+      <div class="admin-btn-row">
+        <button class="btn-admin btn-admin-purple" id="btnAdminHakari">⚡ Toggle Hakari</button>
+        <button class="btn-admin btn-admin-green" id="btnAdminBonus">+10 Free Rolls</button>
+        <button class="btn-admin btn-admin-red" id="btnAdminReset">🔴 Reset Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REEL -->
+  <div class="reel-section">
+    <div class="reel-header">
+      <span class="reel-title">⬡ Roll &amp; Drop</span>
+      <span class="roll-cost">Cost: <strong>6 H</strong> per roll</span>
+    </div>
+    <div class="roll-count-bar">
+      <span class="roll-count-label">Rolls:</span>
+      <button class="roll-count-btn active" data-n="1">×1</button>
+      <button class="roll-count-btn" data-n="3">×3</button>
+      <button class="roll-count-btn" data-n="5">×5</button>
+      <button class="roll-count-btn" data-n="10">×10</button>
+    </div>
+    <div class="reel-window"><div class="reel-track" id="reelTrack"></div></div>
+    <div class="result-pop" id="resultPop"></div>
+    <div class="controls">
+      <button class="btn btn-secondary" id="btnSellAll" disabled>Sell All</button>
+      <button class="btn btn-roll" id="btnRoll">ROLL — 6 H</button>
+    </div>
+  </div>
+
+  <!-- SLOT -->
+  <div class="slot-section">
+    <div class="slot-header">
+      <span class="slot-title">🎰 Bonus Roll Slot</span>
+      <span class="slot-info">Auto-spins after every roll — match 3 to win free rolls</span>
+    </div>
+    <div class="slot-body">
+      <div class="slot-reels">
+        <div class="slot-reel" id="slotR0"><div class="slot-face" id="slotF0">🎲</div></div>
+        <span class="slot-sep">—</span>
+        <div class="slot-reel" id="slotR1"><div class="slot-face" id="slotF1">🎲</div></div>
+        <span class="slot-sep">—</span>
+        <div class="slot-reel" id="slotR2"><div class="slot-face" id="slotF2">🎲</div></div>
+      </div>
+      <div class="slot-result-text" id="slotResultText" style="color:var(--muted)">Spin to win bonus rolls!</div>
+      <div class="bonus-pool">FREE ROLLS<span id="bonusPoolDisplay">0</span></div>
+    </div>
+  </div>
+
+  <!-- REBIRTH -->
+  <div class="rebirth-section">
+    <div class="rebirth-header">
+      <span class="rebirth-title">🔁 Rebirth</span>
+      <span style="font-size:.7rem;color:var(--muted)">Reset balance · keep sell &amp; slot bonuses forever</span>
+    </div>
+    <div class="rebirth-body">
+      <div class="rebirth-info">
+        <div class="rebirth-count-display" id="rbCountDisplay">0 Rebirths</div>
+        <div class="rebirth-sub" id="rbSubText">First rebirth costs <strong>1,000 H</strong></div>
+        <div class="hakari-bar-wrap" id="hakariBarWrap"><div class="hakari-bar" id="hakariBar" style="width:100%"></div></div>
+      </div>
+      <div class="rebirth-perks">
+        <div class="perk-row"><span class="perk-icon">💰</span> Sell value: <strong id="perkMoney">×1.0</strong></div>
+        <div class="perk-row"><span class="perk-icon">🎰</span> Slot prizes: <strong id="perkSlot">×1.0</strong></div>
+        <div class="perk-row"><span class="perk-icon">⚡</span> Jackpot → Hakari Mode (2× luck, 4m11s)</div>
+      </div>
+      <div class="rebirth-right">
+        <div class="rebirth-cost-label">Next rebirth cost</div>
+        <div class="rebirth-cost-val" id="rbCostDisplay">1,000 H</div>
+        <button class="btn btn-rebirth" id="btnRebirth">REBIRTH</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom-grid">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">📦 Inventory</span>
+        <span class="inv-count">Items: <strong id="invCount">0</strong></span>
+      </div>
+      <div class="inv-grid" id="invGrid"><div class="inv-empty">No items yet. Start rolling!</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">📊 Drop Rates &amp; Values</span></div>
+      <div class="odds-list" id="oddsList"></div>
+    </div>
+  </div>
+</main>
+
+<!-- REBIRTH OVERLAY -->
+<div id="rebirthOverlay">
+  <div class="rb-modal">
+    <h2>⚠ REBIRTH?</h2>
+    <p>
+      Your balance will be <strong>reset to 0 H</strong>.<br>
+      Your inventory will be <strong>auto-sold</strong> to help cover the cost.<br>
+      You keep <strong>all multipliers permanently</strong>.<br><br>
+      Each rebirth: <strong>+50% sell value</strong> &amp; <strong>+50% slot prizes</strong>.<br>
+      Cost increases by <strong>×1.5</strong> each time.
+    </p>
+    <div class="rb-modal-btns">
+      <button class="btn btn-rebirth" id="btnRebirthConfirm">YES, REBIRTH</button>
+      <button class="btn btn-secondary" id="btnRebirthCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  CONFIG — edit freely
+// ════════════════════════════════════════════════════════════
+const RARITY_VALUES = {
+  common:5, uncommon:8, rare:15, epic:20, mythic:50, legendary:80, jackpot:777
+};
+const ROLL_COST           = 6;
+const REBIRTH_BASE_COST   = 1000;
+const REBIRTH_COST_MULT   = 1.5;
+const REBIRTH_SELL_BONUS  = 0.5;
+const REBIRTH_SLOT_MULT   = 0.5;
+const HAKARI_DURATION_MS  = 4*60*1000 + 11*1000;
+const HAKARI_LUCK_MULT    = 2;
+
+const SLOT_SYMBOLS = [
+  {icon:"🎰",prize:0,weight:30},{icon:"🎲",prize:0,weight:28},
+  {icon:"💫",prize:1,weight:18},{icon:"⭐",prize:2,weight:10},
+  {icon:"🌟",prize:3,weight:6},{icon:"💎",prize:5,weight:3},
+  {icon:"🃏",prize:10,weight:1},
+];
+
+// ─── ITEM DATABASE ─────────────────────────────────────────
+const ITEMS = [
+  // Common
+  {name:"Rusty Knife",    icon:"🔪",rarity:"common",   weight:30},
+  {name:"Worn Cap",       icon:"🧢",rarity:"common",   weight:28},
+  {name:"Cracked Mug",   icon:"☕",rarity:"common",   weight:27},
+  {name:"Grey Stone",    icon:"🪨",rarity:"common",   weight:25},
+  {name:"Old Coin",      icon:"🪙",rarity:"common",   weight:22},
+  {name:"Dull Wrench",   icon:"🔧",rarity:"common",   weight:20},
+  // Uncommon
+  {name:"Emerald Shard", icon:"💚",rarity:"uncommon", weight:14},
+  {name:"Silver Ring",   icon:"💍",rarity:"uncommon", weight:13},
+  {name:"Iron Gauntlet", icon:"🥊",rarity:"uncommon", weight:12},
+  {name:"Scroll Fragment",icon:"📜",rarity:"uncommon", weight:11},
+  {name:"Lucky Dice",    icon:"🎲",rarity:"uncommon", weight:10},
+  // Rare
+  {name:"Sapphire Orb",  icon:"🔵",rarity:"rare",     weight:7},
+  {name:"Dragon Scale",  icon:"🐉",rarity:"rare",     weight:6},
+  {name:"Electric Coil", icon:"⚡",rarity:"rare",     weight:6},
+  {name:"Rune Tablet",   icon:"🧿",rarity:"rare",     weight:5},
+  {name:"Neon Blade",    icon:"🗡️",rarity:"rare",     weight:5},
+  // Epic
+  {name:"Phantom Eye",   icon:"👁️",rarity:"epic",     weight:3},
+  {name:"Void Shard",    icon:"🌀",rarity:"epic",     weight:3},
+  {name:"Ghost Cloak",   icon:"👻",rarity:"epic",     weight:2.5},
+  {name:"Crystal Heart", icon:"💎",rarity:"epic",     weight:2.5},
+  // Mythic
+  {name:"Inferno Core",  icon:"🔥",rarity:"mythic",   weight:1.5},
+  {name:"Blood Rune",    icon:"🩸",rarity:"mythic",   weight:1.2},
+  {name:"Shadow Crown",  icon:"👑",rarity:"mythic",   weight:1},
+  // Legendary
+  {name:"Sol Meteor",    icon:"☄️",rarity:"legendary",weight:0.5},
+  {name:"Eternal Bloom", icon:"🌸",rarity:"legendary",weight:0.4},
+  {name:"Aether Sword",  icon:"⚔️",rarity:"legendary",weight:0.35},
+  // Jackpot
+  {name:"JACKPOT",       icon:"🃏",rarity:"jackpot",  weight:0.08},
+  {name:"JACKPOT",       icon:"💰",rarity:"jackpot",  weight:0.07},
+];
+
+// ════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════
+let balance    = 250;
+let inventory  = [];
+let stats      = {rolls:0, spent:0, earned:0, bestDrop:null};
+let rolling    = false;
+let multiCount = 1;
+let bonusRolls = 0;
+let rebirths   = 0;
+
+let hakariActive = false;
+let hakariEnd    = 0;
+let hakariTick   = null;
+
+const ITEM_W     = 110;
+const SPIN_ITEMS = 70;
+const BOOSTED    = new Set(['mythic','legendary','jackpot']);
+const SAVE_KEY   = 'jackpotSim_v1';
+
+// ════════════════════════════════════════════════════════════
+//  SAVE / LOAD
+// ════════════════════════════════════════════════════════════
+function saveGame() {
+  const data = {
+    balance, inventory, stats, bonusRolls, rebirths,
+    hakariActive,
+    hakariRemaining: hakariActive ? Math.max(0, hakariEnd - Date.now()) : 0,
+  };
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    const badge = document.getElementById('saveBadge');
+    badge.classList.add('show');
+    clearTimeout(saveGame._t);
+    saveGame._t = setTimeout(() => badge.classList.remove('show'), 1800);
+  } catch(e) { /* storage full or blocked */ }
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    balance    = d.balance    ?? 250;
+    inventory  = d.inventory  ?? [];
+    stats      = d.stats      ?? {rolls:0,spent:0,earned:0,bestDrop:null};
+    bonusRolls = d.bonusRolls ?? 0;
+    rebirths   = d.rebirths   ?? 0;
+    if (d.hakariActive && d.hakariRemaining > 0) {
+      hakariActive = true;
+      hakariEnd    = Date.now() + d.hakariRemaining;
+    }
+  } catch(e) { /* corrupted — start fresh */ }
+}
+
+function resetSave() {
+  localStorage.removeItem(SAVE_KEY);
+  balance = 250; inventory = []; stats = {rolls:0,spent:0,earned:0,bestDrop:null};
+  bonusRolls = 0; rebirths = 0;
+  if (hakariActive) { hakariActive=false; clearInterval(hakariTick); document.getElementById('hakariBadge').classList.remove('active'); document.getElementById('hakariBarWrap').style.display='none'; document.body.classList.remove('hakari-mode'); }
+  updateAll();
+  showToast('🔴 Save reset — fresh start!');
+}
+
+// auto-save after every meaningful action
+function autoSave() { saveGame(); }
+
+// ════════════════════════════════════════════════════════════
+//  REBIRTH HELPERS
+// ════════════════════════════════════════════════════════════
+function getRebirthCost()    { return Math.round(REBIRTH_BASE_COST * Math.pow(REBIRTH_COST_MULT, rebirths)); }
+function getSellMultiplier() { return 1 + rebirths * REBIRTH_SELL_BONUS; }
+function getSlotBonusMult()  { return 1 + rebirths * REBIRTH_SLOT_MULT; }
+function getSellValue(r)     { return Math.floor(RARITY_VALUES[r] * getSellMultiplier()); }
+
+function updateRebirthUI() {
+  const cost = getRebirthCost();
+  document.getElementById('rbCostDisplay').textContent  = cost.toLocaleString() + ' H';
+  document.getElementById('rbCountBadge').textContent   = rebirths;
+  document.getElementById('statRebirths').textContent   = rebirths;
+  document.getElementById('rbCountDisplay').textContent =
+    rebirths + (rebirths===1?' Rebirth':' Rebirths') + ' ' + '⭐'.repeat(Math.min(rebirths,8));
+  document.getElementById('perkMoney').textContent = '×' + getSellMultiplier().toFixed(1);
+  document.getElementById('perkSlot').textContent  = '×' + getSlotBonusMult().toFixed(1);
+  document.getElementById('rbSubText').innerHTML   = rebirths === 0
+    ? `First rebirth costs <strong>1,000 H</strong>`
+    : `Sell ×${getSellMultiplier().toFixed(1)} · Slot ×${getSlotBonusMult().toFixed(1)} · Next: <strong>${cost.toLocaleString()} H</strong>`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  HAKARI MODE
+// ════════════════════════════════════════════════════════════
+function startHakariMode(extend) {
+  hakariActive = true;
+  hakariEnd    = (extend ? Math.max(hakariEnd, Date.now()) : Date.now()) + HAKARI_DURATION_MS;
+  document.getElementById('hakariBadge').classList.add('active');
+  document.getElementById('hakariBarWrap').style.display = 'block';
+  document.body.classList.add('hakari-mode','hakari-anim');
+  setTimeout(()=>document.body.classList.remove('hakari-anim'),1200);
+  clearInterval(hakariTick);
+  hakariTick = setInterval(tickHakari,1000);
+  tickHakari();
+  buildOdds();
+}
+
+function tickHakari() {
+  const rem = hakariEnd - Date.now();
+  if (rem <= 0) {
+    hakariActive = false;
+    clearInterval(hakariTick);
+    document.getElementById('hakariBadge').classList.remove('active');
+    document.getElementById('hakariBarWrap').style.display = 'none';
+    document.body.classList.remove('hakari-mode');
+    document.getElementById('hakariTimer').textContent = '—';
+    buildOdds();
+    showToast('⚡ Hakari Mode ended!');
+    autoSave();
+    return;
+  }
+  const m=Math.floor(rem/60000), s=Math.floor((rem%60000)/1000);
+  document.getElementById('hakariTimer').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  document.getElementById('hakariBar').style.width   = ((rem/HAKARI_DURATION_MS)*100)+'%';
+}
+
+// ════════════════════════════════════════════════════════════
+//  WEIGHTED RANDOM
+// ════════════════════════════════════════════════════════════
+function calcTotalWeight() {
+  return ITEMS.reduce((t,item) =>
+    t + ((hakariActive && BOOSTED.has(item.rarity)) ? item.weight*HAKARI_LUCK_MULT : item.weight), 0);
+}
+function weightedRandom() {
+  let r = Math.random() * calcTotalWeight();
+  for (const item of ITEMS) {
+    const w = (hakariActive && BOOSTED.has(item.rarity)) ? item.weight*HAKARI_LUCK_MULT : item.weight;
+    r -= w; if (r<=0) return item;
+  }
+  return ITEMS[ITEMS.length-1];
+}
+function randomOfRarity(rarity) {
+  const pool = ITEMS.filter(i=>i.rarity===rarity);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+// ════════════════════════════════════════════════════════════
+//  SLOT MACHINE
+// ════════════════════════════════════════════════════════════
+const slotTotal = SLOT_SYMBOLS.reduce((s,x)=>s+x.weight,0);
+function slotRandom() {
+  let r = Math.random()*slotTotal;
+  for(const s of SLOT_SYMBOLS){r-=s.weight;if(r<=0)return s;}
+  return SLOT_SYMBOLS[0];
+}
+function spinSlot() {
+  return new Promise(resolve=>{
+    const faceEls=[0,1,2].map(i=>document.getElementById(`slotF${i}`));
+    const reelEls=[0,1,2].map(i=>document.getElementById(`slotR${i}`));
+    const result=[slotRandom(),slotRandom(),slotRandom()];
+    reelEls.forEach(r=>{r.classList.remove('winner');r.classList.add('spinning');});
+    [0,1,2].forEach(i=>{
+      setTimeout(()=>{
+        reelEls[i].classList.remove('spinning');
+        faceEls[i].textContent=result[i].icon;
+        if(i===2) setTimeout(()=>resolveSlot(result,reelEls,resolve),200);
+      },[650,1050,1450][i]);
+    });
+  });
+}
+function resolveSlot(result,reelEls,resolve){
+  const textEl=document.getElementById('slotResultText');
+  const allMatch=result[0].icon===result[1].icon&&result[1].icon===result[2].icon;
+  if(allMatch&&result[0].prize>0){
+    const prize=Math.max(1,Math.round(result[0].prize*getSlotBonusMult()));
+    bonusRolls+=prize;
+    reelEls.forEach(r=>r.classList.add('winner'));
+    textEl.style.color='var(--accent)';
+    textEl.innerHTML=`🎉 MATCH! +${prize} free roll${prize>1?'s':''}!`;
+    showToast(`🎰 Slot match! +${prize} free rolls!`);
+    updateBonusPool(); updateBtnRoll();
+  } else {
+    textEl.style.color='var(--muted)';
+    textEl.textContent=allMatch?result[0].icon+' Match — no prize':'No match — keep rolling!';
+  }
+  resolve();
+}
+function updateBonusPool(){ document.getElementById('bonusPoolDisplay').textContent=bonusRolls; }
+
+// ════════════════════════════════════════════════════════════
+//  REEL
+// ════════════════════════════════════════════════════════════
+function rarityColor(r){
+  return{common:'#8a9bb5',uncommon:'#4caf7d',rare:'#5b8ef0',epic:'#a855f7',mythic:'#ef4444',legendary:'#f97316',jackpot:'#e8c84a'}[r]||'#fff';
+}
+function makeCard(item){
+  const div=document.createElement('div');
+  div.className=`reel-item r-${item.rarity}`;
+  div.style.background=rarityColor(item.rarity)+'12';
+  div.innerHTML=`<span class="item-icon">${item.icon}</span><span class="item-name">${item.name}</span><span class="item-value">${getSellValue(item.rarity)} H</span>`;
+  return div;
+}
+function buildSpinArray(winner){
+  const winPos=Math.floor(SPIN_ITEMS*0.82);
+  return Array.from({length:SPIN_ITEMS},(_,i)=>i===winPos?winner:weightedRandom());
+}
+
+// Clean one-shot spin: no secondary drift after landing
+function spinReel(winner){
+  return new Promise(resolve=>{
+    const track=document.getElementById('reelTrack');
+    track.innerHTML='';
+    track.style.transition='none';
+    track.style.transform='translateX(0)';
+
+    const spinArr=buildSpinArray(winner);
+    // tail cards so the track doesn't end abruptly visually
+    const tail=Array.from({length:10},()=>weightedRandom());
+    [...spinArr,...tail].forEach(item=>track.appendChild(makeCard(item)));
+
+    track.getBoundingClientRect(); // force reflow
+
+    const winPos      =Math.floor(SPIN_ITEMS*0.82);
+    const windowCenter=track.parentElement.offsetWidth/2;
+    const stopOffset  =winPos*ITEM_W + ITEM_W/2 - windowCenter;
+
+    const duration=3000+Math.random()*600;
+    track.style.transition=`transform ${duration}ms cubic-bezier(0.05,0.88,0.12,1)`;
+    track.style.transform=`translateX(-${stopOffset}px)`;
+
+    // Resolve exactly when the spin ends — no extra drift
+    setTimeout(resolve, duration+60);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+//  UI UPDATES
+// ════════════════════════════════════════════════════════════
+function updateBalance(){
+  document.getElementById('balanceDisplay').innerHTML=
+    `${balance.toLocaleString()}<span class="balance-h"> H</span>`;
+}
+function updateStats(){
+  document.getElementById('statRolls').textContent  = stats.rolls;
+  document.getElementById('statSpent').textContent  = stats.spent.toLocaleString()+' H';
+  document.getElementById('statEarned').textContent = stats.earned.toLocaleString()+' H';
+  document.getElementById('statBest').textContent   =
+    stats.bestDrop?`${stats.bestDrop.icon} ${getSellValue(stats.bestDrop.rarity)} H`:'—';
+}
+function updateInventory(){
+  const grid=document.getElementById('invGrid');
+  document.getElementById('invCount').textContent=inventory.length;
+  if(!inventory.length){
+    grid.innerHTML='<div class="inv-empty">No items yet. Start rolling!</div>';
+    document.getElementById('btnSellAll').disabled=true;
+    return;
+  }
+  document.getElementById('btnSellAll').disabled=false;
+  const groups={};
+  for(const it of inventory){
+    const key=it.name+it.rarity;
+    if(!groups[key]) groups[key]={...it,qty:0};
+    groups[key].qty++;
+  }
+  grid.innerHTML='';
+  for(const g of Object.values(groups)){
+    const card=document.createElement('div');
+    card.className='inv-card';
+    card.innerHTML=`
+      <div class="sell-hint">SELL</div>
+      ${g.qty>1?`<span class="inv-qty">×${g.qty}</span>`:''}
+      <span class="inv-icon">${g.icon}</span>
+      <span class="inv-name">${g.name}</span>
+      <span class="inv-val" style="color:${rarityColor(g.rarity)}">${getSellValue(g.rarity)} H</span>
+    `;
+    card.addEventListener('click',()=>sellOne(g.name,g.rarity));
+    grid.appendChild(card);
+  }
+}
+function buildOdds(){
+  const list=document.getElementById('oddsList');
+  list.innerHTML='';
+  const total=calcTotalWeight();
+  for(const r of ['common','uncommon','rare','epic','mythic','legendary','jackpot']){
+    let w=0;
+    for(const item of ITEMS){
+      if(item.rarity!==r) continue;
+      w+=(hakariActive&&BOOSTED.has(r))?item.weight*HAKARI_LUCK_MULT:item.weight;
+    }
+    const pct=((w/total)*100).toFixed(2);
+    const boosted=hakariActive&&BOOSTED.has(r);
+    const row=document.createElement('div');
+    row.className='odds-row';
+    row.innerHTML=`
+      <div class="odds-left">
+        <span class="odds-dot" style="background:${rarityColor(r)}"></span>
+        <span class="odds-rarity" style="color:${rarityColor(r)}">${r}${boosted?' <span class="odds-boosted">⚡2×</span>':''}</span>
+      </div>
+      <div class="odds-right">
+        <span class="odds-pct">${pct}%</span>
+        <span class="odds-sell" style="color:${rarityColor(r)}">${getSellValue(r)} H</span>
+      </div>`;
+    list.appendChild(row);
+  }
+}
+function updateBtnRoll(){
+  const free=Math.min(bonusRolls,multiCount);
+  const paid=Math.max(0,multiCount-free);
+  const btn=document.getElementById('btnRoll');
+  if(free>=multiCount)      btn.textContent=`ROLL — FREE (${bonusRolls} left)`;
+  else if(free>0)           btn.textContent=`ROLL — ${ROLL_COST*paid} H + ${free} free`;
+  else                      btn.textContent=`ROLL — ${ROLL_COST*multiCount} H`;
+}
+function updateAll(){
+  updateBalance(); updateStats(); updateInventory();
+  updateRebirthUI(); buildOdds(); updateBonusPool(); updateBtnRoll();
+}
+
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ════════════════════════════════════════════════════════════
+//  SELL
+// ════════════════════════════════════════════════════════════
+function sellOne(name,rarity){
+  const idx=inventory.findIndex(i=>i.name===name&&i.rarity===rarity);
+  if(idx===-1) return;
+  const val=getSellValue(rarity);
+  inventory.splice(idx,1);
+  balance+=val; stats.earned+=val;
+  updateBalance(); updateInventory(); updateStats();
+  showToast(`Sold ${name} for ${val} H`);
+  autoSave();
+}
+function sellAll(){
+  if(!inventory.length) return;
+  let total=0;
+  for(const it of inventory) total+=getSellValue(it.rarity);
+  inventory=[]; balance+=total; stats.earned+=total;
+  updateBalance(); updateInventory(); updateStats();
+  showToast(`Sold all for ${total.toLocaleString()} H`);
+  autoSave();
+}
+
+// ════════════════════════════════════════════════════════════
+//  ROLL
+// ════════════════════════════════════════════════════════════
+async function doRoll(n, forcedItem=null){
+  if(rolling) return;
+  const free=Math.min(bonusRolls,n);
+  const paid=n-free;
+  const cost=ROLL_COST*paid;
+  if(balance<cost){ showToast(`Need ${cost} H — have ${balance} H`); return; }
+
+  rolling=true;
+  balance-=cost; bonusRolls-=free;
+  stats.spent+=cost; stats.rolls+=n;
+  updateBalance(); updateStats(); updateBonusPool(); updateBtnRoll();
+  document.getElementById('btnRoll').disabled=true;
+  document.getElementById('btnSellAll').disabled=true;
+  document.getElementById('resultPop').innerHTML='';
+
+  // Build results — forcedItem overrides last result for admin
+  const results=Array.from({length:n},()=>weightedRandom());
+  if(forcedItem) results[results.length-1]=forcedItem;
+
+  if(n>1){
+    for(let i=0;i<n-1;i++){
+      const track=document.getElementById('reelTrack');
+      track.style.transition='none';
+      buildSpinArray(results[i]).forEach(item=>track.appendChild(makeCard(item)));
+      await new Promise(r=>setTimeout(r,90));
+    }
+  }
+  await spinReel(results[n-1]);
+  await spinSlot();
+
+  let gotJackpot=false;
+  for(const winner of results){
+    inventory.push({...winner,id:Date.now()+Math.random()});
+    if(!stats.bestDrop||RARITY_VALUES[winner.rarity]>RARITY_VALUES[stats.bestDrop.rarity])
+      stats.bestDrop=winner;
+    if(winner.rarity==='jackpot') gotJackpot=true;
+  }
+
+  if(gotJackpot){
+    const ext=hakariActive;
+    startHakariMode(ext);
+    document.body.classList.remove('jackpot-flash');
+    void document.body.offsetWidth;
+    document.body.classList.add('jackpot-flash');
+    showToast(ext?'⚡ JACKPOT! Hakari Mode extended!':'⚡ JACKPOT! Hakari Mode — 2× luck for 4m 11s!');
+  }
+
+  const last=results[results.length-1];
+  const pop=document.getElementById('resultPop');
+  pop.innerHTML=`
+    <div class="rp-name" style="color:${rarityColor(last.rarity)}">${last.icon} ${last.name}</div>
+    <div class="rp-rarity" style="color:${rarityColor(last.rarity)}">${last.rarity} · ${getSellValue(last.rarity)} H value</div>
+    ${free>0?`<div style="font-size:.65rem;color:var(--uncommon);margin-top:2px;">${free} free roll${free>1?'s':''} used · ${bonusRolls} remaining</div>`:''}
+    ${n>1?`<div style="font-size:.65rem;color:var(--muted);margin-top:2px;">+${n} items added</div>`:''}
+  `;
+
+  updateInventory(); updateStats(); updateBtnRoll();
+  rolling=false;
+  document.getElementById('btnRoll').disabled=false;
+  autoSave();
+}
+
+// ════════════════════════════════════════════════════════════
+//  REBIRTH
+// ════════════════════════════════════════════════════════════
+document.getElementById('btnRebirth').addEventListener('click',()=>{
+  const cost=getRebirthCost();
+  const invVal=inventory.reduce((s,it)=>s+getSellValue(it.rarity),0);
+  if(balance+invVal<cost){ showToast(`Need ${cost.toLocaleString()} H total — have ${(balance+invVal).toLocaleString()} H`); return; }
+  document.getElementById('rebirthOverlay').classList.add('active');
+});
+document.getElementById('btnRebirthCancel').addEventListener('click',()=>{
+  document.getElementById('rebirthOverlay').classList.remove('active');
+});
+document.getElementById('btnRebirthConfirm').addEventListener('click',()=>{
+  document.getElementById('rebirthOverlay').classList.remove('active');
+  for(const it of inventory) balance+=getSellValue(it.rarity);
+  inventory=[];
+  const cost=getRebirthCost();
+  balance-=cost; rebirths+=1; balance=0;
+  updateAll();
+  showToast(`🔁 Rebirth #${rebirths} complete! Sell ×${getSellMultiplier().toFixed(1)} · Slot ×${getSlotBonusMult().toFixed(1)}`);
+  document.body.style.background='#3a0a0a';
+  setTimeout(()=>{document.body.style.background='';},500);
+  autoSave();
+});
+
+// ════════════════════════════════════════════════════════════
+//  ADMIN PANEL
+// ════════════════════════════════════════════════════════════
+document.getElementById('btnAdminToggle').addEventListener('click',()=>{
+  const panel=document.getElementById('adminPanel');
+  const btn=document.getElementById('btnAdminToggle');
+  const open=panel.classList.toggle('open');
+  btn.classList.toggle('on',open);
+});
+
+// Add money
+document.getElementById('btnAdminMoney').addEventListener('click',()=>{
+  const amt=parseInt(document.getElementById('adminMoneyAmt').value)||0;
+  if(amt<=0){showToast('Enter a positive amount');return;}
+  balance+=amt;
+  updateBalance();
+  showToast(`💰 Admin: +${amt.toLocaleString()} H added`);
+  autoSave();
+});
+
+// Set max
+document.getElementById('btnAdminMax').addEventListener('click',()=>{
+  balance=999999;
+  updateBalance();
+  showToast('💰 Admin: Balance set to 999,999 H');
+  autoSave();
+});
+
+// Force roll with specific rarity
+document.getElementById('btnAdminForceRoll').addEventListener('click',()=>{
+  if(rolling){showToast('Wait for current roll to finish');return;}
+  const rarity=document.getElementById('adminRarity').value;
+  const item=randomOfRarity(rarity);
+  if(!item){showToast('No items for that rarity');return;}
+  // give them the roll for free (admin doesn't cost H)
+  const saved=bonusRolls;
+  bonusRolls=multiCount; // use fake free rolls so no cost
+  doRoll(multiCount, item).then(()=>{ /* cost already handled */ });
+  // override: we gave fake free rolls, restore real ones after
+  // Actually cleaner: just directly add item and animate without cost
+});
+
+// Better approach — admin force roll: add item directly with animation, no cost deducted
+document.getElementById('btnAdminForceRoll').removeEventListener('click',()=>{});
+document.getElementById('btnAdminForceRoll').addEventListener('click', async ()=>{
+  if(rolling){showToast('Wait for current roll to finish');return;}
+  const rarity=document.getElementById('adminRarity').value;
+  const item=randomOfRarity(rarity);
+  if(!item){showToast('No items for that rarity');return;}
+
+  rolling=true;
+  document.getElementById('btnRoll').disabled=true;
+  document.getElementById('resultPop').innerHTML='';
+
+  await spinReel(item);
+  await spinSlot();
+
+  inventory.push({...item,id:Date.now()+Math.random()});
+  if(!stats.bestDrop||RARITY_VALUES[item.rarity]>RARITY_VALUES[stats.bestDrop.rarity])
+    stats.bestDrop=item;
+
+  if(item.rarity==='jackpot'){
+    startHakariMode(hakariActive);
+    document.body.classList.remove('jackpot-flash');
+    void document.body.offsetWidth;
+    document.body.classList.add('jackpot-flash');
+    showToast('⚡ Admin JACKPOT! Hakari Mode activated!');
+  }
+
+  const pop=document.getElementById('resultPop');
+  pop.innerHTML=`
+    <div class="rp-name" style="color:${rarityColor(item.rarity)}">${item.icon} ${item.name}</div>
+    <div class="rp-rarity" style="color:${rarityColor(item.rarity)}">${item.rarity} · ${getSellValue(item.rarity)} H value <span style="color:#00e5ff88">[ADMIN]</span></div>
+  `;
+
+  updateInventory(); updateStats(); updateBtnRoll();
+  rolling=false;
+  document.getElementById('btnRoll').disabled=false;
+  autoSave();
+});
+
+// Toggle Hakari
+document.getElementById('btnAdminHakari').addEventListener('click',()=>{
+  if(hakariActive){
+    hakariActive=false; clearInterval(hakariTick);
+    document.getElementById('hakariBadge').classList.remove('active');
+    document.getElementById('hakariBarWrap').style.display='none';
+    document.body.classList.remove('hakari-mode');
+    buildOdds();
+    showToast('⚡ Hakari Mode disabled by admin');
+  } else {
+    startHakariMode(false);
+    showToast('⚡ Hakari Mode enabled by admin!');
+  }
+  autoSave();
+});
+
+// +10 free rolls
+document.getElementById('btnAdminBonus').addEventListener('click',()=>{
+  bonusRolls+=10;
+  updateBonusPool(); updateBtnRoll();
+  showToast('🎰 Admin: +10 free rolls added');
+  autoSave();
+});
+
+// Reset save
+document.getElementById('btnAdminReset').addEventListener('click',()=>{
+  if(confirm('Reset ALL save data? This cannot be undone.')) resetSave();
+});
+
+// ════════════════════════════════════════════════════════════
+//  MULTI-ROLL BUTTONS
+// ════════════════════════════════════════════════════════════
+document.getElementById('btnRoll').addEventListener('click',()=>doRoll(multiCount));
+document.getElementById('btnSellAll').addEventListener('click',sellAll);
+document.querySelectorAll('.roll-count-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.roll-count-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    multiCount=parseInt(btn.dataset.n);
+    updateBtnRoll();
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+loadGame();
+updateAll();
+
+if(hakariActive) startHakariMode(true); // resume timer if loaded mid-mode
+
+(function initReel(){
+  const track=document.getElementById('reelTrack');
+  for(let i=0;i<11;i++) track.appendChild(makeCard(weightedRandom()));
+})();
+
+SLOT_SYMBOLS.slice(0,3).forEach((s,i)=>{
+  document.getElementById(`slotF${i}`).textContent=s.icon;
+});
+</script>
+</body>
+</html>
