@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>JACKPOT SIM</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#07090e;--bg2:#0c0e17;--bg3:#11141f;--panel:#161924;--border:#1e2130;
+  --text:#bfc7e0;--muted:#434966;--accent:#f2c94c;--orange:#e8762a;
+  --common:#8a9bb0;--uncommon:#3dba6a;--rare:#4a8fe8;--epic:#9b55f0;
+  --legendary:#f0a020;--mythic:#e83468;--jackpot:#f2c94c;
+}
+html,body{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;overscroll-behavior:none}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* HEADER */
+#hdr{position:sticky;top:0;z-index:80;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:rgba(11,13,23,.97);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);gap:10px}
+.logo{font-family:'Orbitron',sans-serif;font-size:clamp(.85rem,4.5vw,1.2rem);font-weight:900;
+  letter-spacing:.12em;color:var(--accent);text-shadow:0 0 18px rgba(242,201,76,.28);white-space:nowrap}
+.logo em{color:var(--orange);font-style:normal}
+.hdr-right{display:flex;align-items:center;gap:7px}
+.wallet{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:6px;padding:6px 10px;font-family:'Share Tech Mono',monospace;
+  font-size:clamp(.75rem,3.5vw,.88rem);flex-shrink:0}
+#bal{color:var(--accent);font-weight:700}
+#bal.bump{animation:bump .3s}
+@keyframes bump{0%,100%{transform:scale(1)}50%{transform:scale(1.28)}}
+.btn-admin{background:none;border:1px solid var(--border);border-radius:6px;
+  padding:6px 9px;color:var(--muted);font-size:.68rem;cursor:pointer;
+  font-family:'Orbitron',sans-serif;letter-spacing:.08em;transition:.2s;white-space:nowrap;
+  touch-action:manipulation}
+.btn-admin:hover,.btn-admin:active{border-color:var(--orange);color:var(--orange)}
+
+/* TABS */
+#tabs{display:flex;padding:10px 10px 0;position:relative;z-index:2}
+.tab{flex:1;padding:8px 4px;background:none;border:none;
+  border-bottom:2px solid var(--border);color:var(--muted);
+  font-family:'Orbitron',sans-serif;font-size:.56rem;letter-spacing:.12em;
+  cursor:pointer;transition:all .2s;text-transform:uppercase;touch-action:manipulation}
+.tab.on{color:var(--accent);border-color:var(--accent)}
+
+/* PAGES */
+.pg{display:none;padding:12px 10px 80px;position:relative;z-index:2}
+.pg.on{display:block}
+
+/* CARD */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.ctitle{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:.22em;color:var(--muted);
+  text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.ctitle::before{content:'';width:3px;height:10px;background:var(--accent);border-radius:2px;flex-shrink:0}
+
+/* STATS */
+#statsBar{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px}
+.sc{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:7px 3px;text-align:center}
+.sc .sv{font-family:'Orbitron',sans-serif;font-size:clamp(.58rem,2.2vw,.82rem);font-weight:700;color:var(--accent);line-height:1.2}
+.sc .sl{font-size:.55rem;color:var(--muted);margin-top:2px}
+
+/* REEL */
+.reel-wrap{position:relative;overflow:hidden;height:96px;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg2);margin-bottom:12px}
+.reel-wrap::before,.reel-wrap::after{content:'';position:absolute;top:0;bottom:0;width:55px;z-index:4;pointer-events:none}
+.reel-wrap::before{left:0;background:linear-gradient(to right,var(--bg2),transparent)}
+.reel-wrap::after{right:0;background:linear-gradient(to left,var(--bg2),transparent)}
+.reel-line{position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);z-index:5;
+  background:rgba(242,201,76,.75);box-shadow:0 0 10px rgba(242,201,76,.4)}
+.reel-line::before,.reel-line::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
+  width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent}
+.reel-line::before{top:0;border-top:7px solid var(--accent)}
+.reel-line::after{bottom:0;border-bottom:7px solid var(--accent)}
+#reel{display:flex;align-items:center;gap:5px;padding:0 calc(50% - 46px);height:100%;will-change:transform}
+.ri{flex:0 0 87px;height:82px;border-radius:6px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;border:2px solid transparent;
+  position:relative;overflow:hidden}
+.ri::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.055),transparent)}
+.ri .ric{font-size:1.9rem;line-height:1}
+.ri .rin{font-family:'Orbitron',sans-serif;font-size:.42rem;letter-spacing:.07em;color:rgba(255,255,255,.44)}
+.r-common   {background:rgba(138,155,176,.1);border-color:rgba(138,155,176,.28)!important}
+.r-uncommon {background:rgba(61,186,106,.1);border-color:rgba(61,186,106,.28)!important}
+.r-rare     {background:rgba(74,143,232,.1);border-color:rgba(74,143,232,.28)!important}
+.r-epic     {background:rgba(155,85,240,.1);border-color:rgba(155,85,240,.28)!important}
+.r-legendary{background:rgba(240,160,32,.1);border-color:rgba(240,160,32,.28)!important}
+.r-mythic   {background:rgba(232,52,104,.1);border-color:rgba(232,52,104,.28)!important}
+.r-jackpot  {background:rgba(242,201,76,.12);border-color:rgba(242,201,76,.5)!important;
+  animation:jpglow 1.5s infinite alternate}
+@keyframes jpglow{from{box-shadow:0 0 8px rgba(242,201,76,.15)}to{box-shadow:0 0 22px rgba(242,201,76,.5)}}
+
+/* ROLL BUTTON */
+.btn-roll{width:100%;padding:13px;background:linear-gradient(135deg,var(--orange),var(--accent));
+  border:none;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:.74rem;
+  font-weight:700;letter-spacing:.15em;color:#07090e;cursor:pointer;
+  box-shadow:0 4px 18px rgba(242,201,76,.18);transition:all .2s;text-transform:uppercase;
+  -webkit-appearance:none;touch-action:manipulation;user-select:none}
+.btn-roll:active:not(:disabled){transform:scale(.97);box-shadow:none}
+.btn-roll:disabled{opacity:.35;cursor:not-allowed;filter:grayscale(.5)}
+.roll-meta{display:flex;justify-content:space-between;margin-top:8px;
+  font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--muted)}
+.roll-meta .ac{color:var(--accent)}
+
+/* RESULT */
+#result{min-height:46px;display:flex;align-items:center;justify-content:center;gap:9px;
+  font-family:'Orbitron',sans-serif;font-size:.82rem;letter-spacing:.07em;
+  opacity:0;transition:opacity .3s;border-radius:8px;margin-top:10px;padding:10px;
+  text-align:center;flex-wrap:wrap}
+#result.show{opacity:1}
+#result .ricon{font-size:1.7rem}
+
+/* ODDS */
+.odds-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.och{display:flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:3px 7px;font-size:.65rem;font-family:'Share Tech Mono',monospace}
+.odot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* INVENTORY */
+.inv-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.inv-top .ctitle{margin:0}
+.inv-actions{display:flex;gap:6px;align-items:center}
+#invCount{font-family:'Share Tech Mono',monospace;color:var(--muted);font-size:.7rem}
+.btn-sm{padding:5px 10px;background:none;border:1px solid var(--muted);border-radius:5px;
+  color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:.78rem;cursor:pointer;
+  transition:.2s;touch-action:manipulation;-webkit-appearance:none}
+.btn-sm:hover,.btn-sm:active{border-color:var(--accent);color:var(--accent)}
+#invGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:7px;
+  max-height:320px;overflow-y:auto;padding-right:2px}
+.ii{border-radius:8px;padding:7px 5px;display:flex;flex-direction:column;
+  align-items:center;gap:3px;cursor:pointer;transition:transform .15s;
+  position:relative;border:1.5px solid transparent;touch-action:manipulation;user-select:none}
+.ii:active{transform:scale(.93)}
+.ii .iico{font-size:1.65rem}
+.ii .iinm{font-family:'Orbitron',sans-serif;font-size:.43rem;letter-spacing:.04em;
+  text-align:center;color:rgba(255,255,255,.48);line-height:1.2}
+.ii .iipr{font-family:'Share Tech Mono',monospace;font-size:.6rem}
+.sell-tip{position:absolute;inset:0;border-radius:8px;background:rgba(0,0,0,.72);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:.5rem;color:var(--accent);
+  opacity:0;transition:.15s}
+.ii:hover .sell-tip,.ii:active .sell-tip{opacity:1}
+.inv-empty{color:var(--muted);font-size:.83rem;text-align:center;padding:36px 0;grid-column:1/-1}
+
+/* HISTORY */
+#histList{display:flex;flex-direction:column;gap:5px;max-height:360px;overflow-y:auto;padding-right:2px}
+.he{display:flex;align-items:center;gap:9px;padding:7px 10px;background:var(--bg3);
+  border-radius:6px;border-left:3px solid transparent;animation:fin .25s ease}
+@keyframes fin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.he .heico{font-size:1.2rem;flex-shrink:0}
+.he .heinfo{flex:1;min-width:0}
+.he .henm{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.he .herar{font-size:.63rem;color:var(--muted);font-family:'Share Tech Mono',monospace}
+.he .heact{font-family:'Share Tech Mono',monospace;font-size:.68rem;flex-shrink:0}
+.heact.sold{color:#3dba6a}.heact.kept{color:var(--muted)}
+
+/* JACKPOT OVERLAY */
+#jpOver{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.9);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .35s}
+#jpOver.show{opacity:1;pointer-events:all}
+.jp-box{text-align:center;animation:jppop .5s cubic-bezier(.17,.67,.24,1.6) both}
+@keyframes jppop{from{transform:scale(.4) rotate(-10deg);opacity:0}to{transform:none;opacity:1}}
+.jp-stars{font-size:2rem;letter-spacing:.4em;animation:hrot 1.2s linear infinite}
+@keyframes hrot{to{filter:hue-rotate(360deg)}}
+.jp-box h2{font-family:'Orbitron',sans-serif;font-size:clamp(1.8rem,8vw,3rem);font-weight:900;
+  color:var(--jackpot);text-shadow:0 0 40px rgba(242,201,76,.8);letter-spacing:.18em;margin:6px 0}
+.jp-item{font-size:clamp(2.5rem,10vw,4rem);margin:14px 0}
+.jp-name{font-family:'Orbitron',sans-serif;font-size:clamp(.78rem,3vw,1rem);color:var(--text)}
+.jp-val{font-family:'Share Tech Mono',monospace;font-size:clamp(1rem,4vw,1.4rem);color:var(--jackpot);margin:6px 0}
+.jp-close{margin-top:20px;padding:11px 28px;background:var(--jackpot);color:#07090e;
+  border:none;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:.72rem;
+  font-weight:700;letter-spacing:.15em;cursor:pointer;touch-action:manipulation}
+
+/* CONFETTI */
+.cf{position:fixed;z-index:199;pointer-events:none;animation:cfall 2.8s ease-in forwards}
+@keyframes cfall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(800deg);opacity:0}}
+
+/* ADMIN OVERLAY */
+#adminOver{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.93);
+  display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;
+  opacity:0;pointer-events:none;transition:opacity .3s;padding:16px 10px 40px}
+#adminOver.show{opacity:1;pointer-events:all}
+.admin-box{width:100%;max-width:480px;background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:18px;margin:auto}
+.admin-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;
+  padding-bottom:12px;border-bottom:1px solid var(--border)}
+.admin-hdr h2{font-family:'Orbitron',sans-serif;font-size:.88rem;letter-spacing:.14em;color:var(--orange)}
+.btn-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;
+  padding:4px 8px;transition:.2s;touch-action:manipulation;-webkit-appearance:none}
+.btn-close:hover{color:var(--text)}
+.admin-section{margin-bottom:18px}
+.admin-section h3{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:.18em;
+  color:var(--accent);text-transform:uppercase;margin-bottom:10px;
+  padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* admin item list */
+#adminItemList{display:flex;flex-direction:column;gap:5px;max-height:240px;overflow-y:auto;
+  padding-right:3px;margin-bottom:10px}
+.adm-item{display:flex;align-items:center;gap:8px;padding:7px 10px;
+  background:var(--bg3);border-radius:7px;border:1px solid var(--border)}
+.adm-item .ai-ico{font-size:1.3rem;flex-shrink:0}
+.adm-item .ai-info{flex:1;min-width:0}
+.adm-item .ai-name{font-size:.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adm-item .ai-meta{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--muted)}
+.adm-item .ai-del{background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:1rem;padding:4px 6px;transition:.2s;flex-shrink:0;touch-action:manipulation}
+.adm-item .ai-del:hover,.adm-item .ai-del:active{color:var(--mythic)}
+.ai-tag{font-size:.52rem;padding:2px 6px;border-radius:10px;
+  font-family:'Share Tech Mono',monospace;flex-shrink:0;white-space:nowrap}
+.tag-c{background:rgba(232,118,42,.14);color:var(--orange);border:1px solid rgba(232,118,42,.28)}
+.tag-d{background:rgba(74,105,200,.1);color:#6a8fe0;border:1px solid rgba(74,105,200,.2)}
+
+/* add item form */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.form-row.one{grid-template-columns:1fr}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:.64rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.fg input,.fg select{background:var(--bg3);border:1px solid var(--border);border-radius:6px;
+  padding:8px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;
+  font-size:.78rem;outline:none;transition:.2s;-webkit-appearance:none;width:100%}
+.fg input:focus,.fg select:focus{border-color:var(--accent)}
+.fg select option{background:var(--bg3)}
+.emojiprev{font-size:1.55rem;text-align:center;padding:8px;background:var(--bg3);
+  border:1px solid var(--border);border-radius:6px;min-height:42px;
+  display:flex;align-items:center;justify-content:center}
+.btn-add{width:100%;padding:11px;background:linear-gradient(135deg,var(--orange),var(--accent));
+  border:none;border-radius:7px;font-family:'Orbitron',sans-serif;font-size:.7rem;
+  font-weight:700;letter-spacing:.12em;color:#07090e;cursor:pointer;margin-top:6px;
+  touch-action:manipulation;-webkit-appearance:none;transition:.15s}
+.btn-add:active{transform:scale(.98)}
+.amsg{text-align:center;font-family:'Share Tech Mono',monospace;font-size:.7rem;
+  padding:6px;border-radius:6px;margin-top:7px;height:32px;line-height:20px;
+  transition:opacity .3s;opacity:0}
+.amsg.ok{background:rgba(61,186,106,.1);color:#3dba6a;border:1px solid rgba(61,186,106,.2);opacity:1}
+.amsg.err{background:rgba(232,52,104,.1);color:#e83468;border:1px solid rgba(232,52,104,.2);opacity:1}
+
+/* login */
+#adminLogin{text-align:center}
+#adminLogin p{font-size:.8rem;color:var(--muted);margin-bottom:14px;line-height:1.6}
+#adminLogin input{background:var(--bg3);border:1px solid var(--border);border-radius:6px;
+  padding:10px 14px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.88rem;
+  outline:none;width:100%;margin-bottom:10px;text-align:center;letter-spacing:.2em;
+  -webkit-appearance:none;transition:.2s}
+#adminLogin input:focus{border-color:var(--accent)}
+.btn-login{width:100%;padding:11px;background:var(--orange);border:none;border-radius:7px;
+  font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.14em;
+  color:#07090e;cursor:pointer;touch-action:manipulation;-webkit-appearance:none}
+.login-err{color:var(--mythic);font-size:.7rem;margin-top:7px;min-height:18px;
+  font-family:'Share Tech Mono',monospace}
+
+/* danger zone buttons */
+.danger-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn-manage{padding:9px 6px;background:none;border:1px solid var(--muted);border-radius:6px;
+  color:var(--muted);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:.08em;
+  cursor:pointer;touch-action:manipulation;transition:.2s;text-transform:uppercase;
+  -webkit-appearance:none;width:100%}
+.btn-manage:hover,.btn-manage:active{border-color:var(--accent);color:var(--accent)}
+.btn-manage.danger:hover,.btn-manage.danger:active{border-color:var(--mythic);color:var(--mythic)}
+
+/* rarity tag in admin */
+.rtag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:.52rem;
+  font-family:'Share Tech Mono',monospace;margin-left:3px;vertical-align:middle}
+
+/* scrollbars */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="logo">JACKPOT<em>SIM</em></div>
+  <div class="hdr-right">
+    <button class="btn-admin" onclick="openAdmin()">⚙ ADMIN</button>
+    <div class="wallet">◈&nbsp;<span id="bal">500</span><span style="color:var(--muted);font-size:.72rem;margin-left:2px">H</span></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div id="tabs">
+  <button class="tab on" onclick="switchTab('roll',this)">🎰 Roll</button>
+  <button class="tab"    onclick="switchTab('inv',this)">🎒 Inventory</button>
+  <button class="tab"    onclick="switchTab('hist',this)">📜 History</button>
+</div>
+
+<!-- ROLL PAGE -->
+<div id="pg-roll" class="pg on">
+  <div id="statsBar">
+    <div class="sc"><div class="sv" id="st-rolls">0</div><div class="sl">Rolls</div></div>
+    <div class="sc"><div class="sv" id="st-spent">0</div><div class="sl">Spent H</div></div>
+    <div class="sc"><div class="sv" id="st-earned">0</div><div class="sl">Earned H</div></div>
+    <div class="sc"><div class="sv" id="st-best" style="font-size:.65rem">—</div><div class="sl">Best</div></div>
+    <div class="sc"><div class="sv" id="st-inv">0</div><div class="sl">Items</div></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">◈ Case Opening</div>
+    <div class="reel-wrap">
+      <div class="reel-line"></div>
+      <div id="reel"></div>
+    </div>
+    <button class="btn-roll" id="rollBtn" onclick="doRoll()">🎲 ROLL CASE</button>
+    <div class="roll-meta">
+      <span>Cost: <span class="ac">15H</span> per roll</span>
+      <span id="poolLbl" style="color:var(--muted)"></span>
+    </div>
+    <div id="result"></div>
+    <div class="odds-row" id="oddsRow"></div>
+  </div>
+</div>
+
+<!-- INVENTORY PAGE -->
+<div id="pg-inv" class="pg">
+  <div class="card">
+    <div class="inv-top">
+      <div class="ctitle" style="margin:0">⬡ Inventory</div>
+      <div class="inv-actions">
+        <span id="invCount">0 items</span>
+        <button class="btn-sm" onclick="sellAll()">Sell All</button>
+      </div>
+    </div>
+    <div id="invGrid"><div class="inv-empty">No items yet — go roll!</div></div>
+  </div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div id="pg-hist" class="pg">
+  <div class="card">
+    <div class="ctitle">◌ Roll History</div>
+    <div id="histList"><div style="color:var(--muted);font-size:.82rem;padding:20px 0;text-align:center">No rolls yet</div></div>
+  </div>
+</div>
+
+<!-- JACKPOT OVERLAY -->
+<div id="jpOver">
+  <div class="jp-box">
+    <div class="jp-stars">★ ★ ★</div>
+    <h2>JACKPOT!</h2>
+    <div class="jp-item" id="jpIco">💰</div>
+    <div class="jp-name" id="jpNm">Item</div>
+    <div class="jp-val">777H</div>
+    <button class="jp-close" onclick="closeJP()">CLAIM IT!</button>
+  </div>
+</div>
+
+<!-- ADMIN OVERLAY -->
+<div id="adminOver">
+  <div class="admin-box">
+
+    <!-- LOGIN -->
+    <div id="adminLogin">
+      <div class="admin-hdr">
+        <h2>⚙ ADMIN PANEL</h2>
+        <button class="btn-close" onclick="closeAdmin()">✕</button>
+      </div>
+      <p>Enter the admin password<br>to manage the item pool.</p>
+      <input type="password" id="adminPw" placeholder="Password"
+        onkeydown="if(event.key==='Enter')tryLogin()">
+      <button class="btn-login" onclick="tryLogin()">ENTER</button>
+      <div class="login-err" id="loginErr"></div>
+    </div>
+
+    <!-- PANEL -->
+    <div id="adminPanel" style="display:none">
+      <div class="admin-hdr">
+        <h2>⚙ ADMIN PANEL</h2>
+        <button class="btn-close" onclick="closeAdmin()">✕</button>
+      </div>
+
+      <!-- item list -->
+      <div class="admin-section">
+        <h3>📦 Item Pool — <span id="poolCount">0</span> items</h3>
+        <div id="adminItemList"></div>
+      </div>
+
+      <!-- add item -->
+      <div class="admin-section">
+        <h3>➕ Add New Item</h3>
+        <div class="form-row">
+          <div class="fg">
+            <label>Item Name</label>
+            <input type="text" id="newName" placeholder="e.g. Shadow Blade" maxlength="24">
+          </div>
+          <div class="fg">
+            <label>Emoji Icon</label>
+            <input type="text" id="newIcon" placeholder="🗡️" maxlength="4"
+              oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="fg">
+            <label>Rarity</label>
+            <select id="newRarity">
+              <option value="common">Common — 5H</option>
+              <option value="uncommon">Uncommon — 10H</option>
+              <option value="rare">Rare — 20H</option>
+              <option value="epic">Epic — 30H</option>
+              <option value="legendary">Legendary — 50H</option>
+              <option value="mythic">Mythic — 80H</option>
+              <option value="jackpot">JACKPOT — 777H</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Preview</label>
+            <div class="emojiprev" id="emojiprev">?</div>
+          </div>
+        </div>
+        <button class="btn-add" onclick="addItem()">➕ ADD TO POOL</button>
+        <div class="amsg" id="amsg"></div>
+      </div>
+
+      <!-- manage -->
+      <div class="admin-section">
+        <h3>⚡ Quick Actions</h3>
+        <div class="danger-grid">
+          <button class="btn-manage" onclick="giveH()">💰 Give 200H</button>
+          <button class="btn-manage danger" onclick="doReset()">🗑 Reset All</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── CONSTANTS ──────────────────────────────────────────────────
+const PASS = 'admin123';
+
+const RARITIES = [
+  {id:'common',    label:'Common',    color:'#8a9bb0', sell:5,   w:400},
+  {id:'uncommon',  label:'Uncommon',  color:'#3dba6a', sell:10,  w:250},
+  {id:'rare',      label:'Rare',      color:'#4a8fe8', sell:20,  w:150},
+  {id:'epic',      label:'Epic',      color:'#9b55f0', sell:30,  w:80},
+  {id:'legendary', label:'Legendary', color:'#f0a020', sell:50,  w:30},
+  {id:'mythic',    label:'Mythic',    color:'#e83468', sell:80,  w:12},
+  {id:'jackpot',   label:'JACKPOT',   color:'#f2c94c', sell:777, w:3},
+];
+
+const DEFAULT_ITEMS = [
+  {name:'Ember Shard',   icon:'🔥'},{name:'Inferno Core',  icon:'🌋'},
+  {name:'Flame Drake',   icon:'🐉'},{name:'Solar Blaze',   icon:'☀️'},
+  {name:'Tide Crystal',  icon:'💧'},{name:'Ocean Relic',   icon:'🌊'},
+  {name:'Deep Sapphire', icon:'🐬'},{name:'Frost Comet',   icon:'❄️'},
+  {name:'Gold Ingot',    icon:'🥇'},{name:'Crown Jewel',   icon:'👑'},
+  {name:'Coin Stack',    icon:'🪙'},{name:'Treasure Key',  icon:'🗝️'},
+  {name:'Mystery Box',   icon:'📦'},{name:'Shadow Crate',  icon:'🎁'},
+  {name:'Void Chest',    icon:'🧿'},{name:'Pandora Cube',  icon:'🔮'},
+];
+
+// ── STATE (localStorage) ───────────────────────────────────────
+function freshState(){
+  return {balance:500,inventory:[],history:[],
+    stats:{rolls:0,spent:0,earned:0,bestRI:-1,bestIcon:'',bestLabel:''},
+    customItems:[],idSeq:0};
+}
+function loadState(){
+  try{const s=JSON.parse(localStorage.getItem('jpsim3')||'null');if(s)return s;}catch(e){}
+  return freshState();
+}
+function save(){
+  try{localStorage.setItem('jpsim3',JSON.stringify(S));}catch(e){}
+}
+
+let S = loadState();
+let rolling = false;
+let adminIn = false;
+
+function allItems(){
+  return [...DEFAULT_ITEMS.map(i=>({...i,custom:false})),
+          ...S.customItems.map(i=>({...i,custom:true}))];
+}
+function rarityOf(id){return RARITIES.find(r=>r.id===id)||RARITIES[0];}
+
+// ── INIT ───────────────────────────────────────────────────────
+function init(){
+  updateBal();updateStats();buildOdds();
+  seedReel(36);renderInv();renderHist();updatePoolLabel();
+}
+
+// ── TABS ───────────────────────────────────────────────────────
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('pg-'+name).classList.add('on');
+}
+
+// ── REEL ───────────────────────────────────────────────────────
+function wpick(arr){
+  let t=arr.reduce((s,a)=>s+a.w,0),r=Math.random()*t;
+  for(const a of arr){r-=a.w;if(r<=0)return a;}
+  return arr[arr.length-1];
+}
+function makeItems(n){
+  const items=allItems();
+  return Array.from({length:n},()=>({
+    ...items[Math.floor(Math.random()*items.length)],
+    rarity:wpick(RARITIES)
+  }));
+}
+function seedReel(n){
+  const reel=document.getElementById('reel');
+  reel.style.transition='none';reel.style.transform='translateX(0)';
+  reel.innerHTML=makeItems(n).map(it=>`
+    <div class="ri r-${it.rarity.id}">
+      <div class="ric">${it.icon}</div>
+      <div class="rin">${it.rarity.label}</div>
+    </div>`).join('');
+}
+
+// ── ROLL ───────────────────────────────────────────────────────
+async function doRoll(){
+  if(rolling)return;
+  if(S.balance<15){flash('❌','Not enough H!','var(--mythic)',null);return;}
+  rolling=true;
+  S.balance-=15;S.stats.rolls++;S.stats.spent+=15;
+  save();updateBal();updateStats();
+  document.getElementById('rollBtn').disabled=true;
+
+  const items=allItems();
+  const winR=wpick(RARITIES);
+  const winI={...items[Math.floor(Math.random()*items.length)],rarity:winR};
+
+  const arr=makeItems(34);
+  const wpos=30;
+  arr[wpos]=winI;
+  const reel=document.getElementById('reel');
+  reel.style.transition='none';reel.style.transform='translateX(0)';
+  reel.innerHTML=arr.map(it=>`
+    <div class="ri r-${it.rarity.id}">
+      <div class="ric">${it.icon}</div>
+      <div class="rin">${it.rarity.label}</div>
+    </div>`).join('');
+
+  await sleep(30);
+  const iw=92;
+  const dur=3300+Math.random()*400;
+  const tx=-(wpos*iw)+(Math.random()*22-11);
+  reel.style.transition=`transform ${dur}ms cubic-bezier(0.05,0.8,0.13,1)`;
+  reel.style.transform=`translateX(${tx}px)`;
+  await sleep(dur+80);
+
+  const ni={id:S.idSeq++,name:winI.name,icon:winI.icon,rarityId:winR.id,sold:false};
+  S.inventory.unshift(ni);
+  S.history.unshift({...ni,action:'kept'});
+  if(S.history.length>60)S.history.pop();
+
+  const ri=RARITIES.findIndex(r=>r.id===winR.id);
+  if(ri>S.stats.bestRI){
+    S.stats.bestRI=ri;S.stats.bestIcon=winI.icon;S.stats.bestLabel=winR.label;
+  }
+  save();updateStats();renderInv();renderHist();
+
+  if(winR.id==='jackpot'){await sleep(120);showJP(ni,winR);}
+  else flash(winI.icon,winI.name,winR.color,winR.label);
+
+  rolling=false;
+  document.getElementById('rollBtn').disabled=false;
+}
+
+// ── BALANCE ────────────────────────────────────────────────────
+function updateBal(){
+  const el=document.getElementById('bal');
+  el.textContent=S.balance.toLocaleString();
+  el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');
+}
+
+// ── STATS ──────────────────────────────────────────────────────
+function updateStats(){
+  document.getElementById('st-rolls').textContent=S.stats.rolls;
+  document.getElementById('st-spent').textContent=S.stats.spent;
+  document.getElementById('st-earned').textContent=S.stats.earned;
+  const b=document.getElementById('st-best');
+  if(S.stats.bestRI>=0){
+    b.textContent=S.stats.bestIcon+' '+S.stats.bestLabel;
+    b.style.color=RARITIES[S.stats.bestRI].color;
+  }
+  document.getElementById('st-inv').textContent=S.inventory.filter(i=>!i.sold).length;
+}
+
+// ── ODDS ───────────────────────────────────────────────────────
+function buildOdds(){
+  const t=RARITIES.reduce((s,r)=>s+r.w,0);
+  document.getElementById('oddsRow').innerHTML=RARITIES.map(r=>`
+    <div class="och">
+      <div class="odot" style="background:${r.color}"></div>
+      <span style="color:${r.color}">${r.label}</span>
+      <span style="color:var(--muted)">${((r.w/t)*100).toFixed(1)}%</span>
+    </div>`).join('');
+}
+function updatePoolLabel(){
+  const n=allItems().length;
+  document.getElementById('poolLbl').textContent=n+' items in pool';
+}
+
+// ── RESULT FLASH ───────────────────────────────────────────────
+function flash(icon,name,color,rarity){
+  const d=document.getElementById('result');
+  d.innerHTML=`<span class="ricon">${icon}</span>
+    <span style="color:${color};font-weight:700">${name}</span>
+    ${rarity?`<span style="color:var(--muted);font-size:.62rem">[${rarity.toUpperCase()}]</span>`:''}`;
+  d.style.background=color+'18';d.style.border=`1px solid ${color}33`;
+  d.classList.add('show');
+  clearTimeout(flash._t);
+  flash._t=setTimeout(()=>d.classList.remove('show'),3000);
+}
+
+// ── INVENTORY ──────────────────────────────────────────────────
+function renderInv(){
+  const owned=S.inventory.filter(i=>!i.sold);
+  document.getElementById('invCount').textContent=owned.length+' item'+(owned.length!==1?'s':'');
+  document.getElementById('st-inv').textContent=owned.length;
+  const g=document.getElementById('invGrid');
+  if(!owned.length){g.innerHTML='<div class="inv-empty">No items yet — go roll!</div>';return;}
+  g.innerHTML=owned.map(it=>{
+    const r=rarityOf(it.rarityId);
+    return `<div class="ii r-${r.id}" onclick="sellItem(${it.id})">
+      <div class="iico">${it.icon}</div>
+      <div class="iinm">${it.name}</div>
+      <div class="iipr" style="color:${r.color}">+${r.sell}H</div>
+      <div class="sell-tip">SELL</div>
+    </div>`;
+  }).join('');
+}
+function sellItem(id){
+  const it=S.inventory.find(i=>i.id===id);if(!it||it.sold)return;
+  const r=rarityOf(it.rarityId);
+  it.sold=true;S.balance+=r.sell;S.stats.earned+=r.sell;
+  const h=S.history.find(h=>h.id===id);if(h){h.action='sold';h.sold=true;}
+  save();updateBal();updateStats();renderInv();renderHist();
+}
+function sellAll(){
+  const owned=S.inventory.filter(i=>!i.sold);if(!owned.length)return;
+  owned.forEach(it=>{
+    const r=rarityOf(it.rarityId);
+    it.sold=true;S.balance+=r.sell;S.stats.earned+=r.sell;
+    const h=S.history.find(h=>h.id===it.id);if(h){h.action='sold';h.sold=true;}
+  });
+  save();updateBal();updateStats();renderInv();renderHist();
+}
+
+// ── HISTORY ────────────────────────────────────────────────────
+function renderHist(){
+  const l=document.getElementById('histList');
+  if(!S.history.length){
+    l.innerHTML='<div style="color:var(--muted);font-size:.82rem;padding:20px 0;text-align:center">No rolls yet</div>';return;
+  }
+  l.innerHTML=S.history.map(h=>{
+    const r=rarityOf(h.rarityId);
+    return `<div class="he r-${r.id}" style="border-color:${r.color}">
+      <div class="heico">${h.icon}</div>
+      <div class="heinfo">
+        <div class="henm">${h.name}</div>
+        <div class="herar" style="color:${r.color}">${r.label}</div>
+      </div>
+      <div class="heact ${h.sold?'sold':'kept'}">${h.sold?'+'+r.sell+'H':'kept'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── JACKPOT ────────────────────────────────────────────────────
+function showJP(item){
+  document.getElementById('jpIco').textContent=item.icon;
+  document.getElementById('jpNm').textContent=item.name;
+  document.getElementById('jpOver').classList.add('show');
+  confetti();
+}
+function closeJP(){document.getElementById('jpOver').classList.remove('show');}
+function confetti(){
+  const cols=['#f2c94c','#e8762a','#4a8fe8','#9b55f0','#3dba6a','#e83468','#fff'];
+  for(let i=0;i<72;i++){
+    const el=document.createElement('div');el.className='cf';
+    el.style.cssText=`left:${Math.random()*100}vw;top:-20px;
+      background:${cols[Math.floor(Math.random()*cols.length)]};
+      border-radius:${Math.random()>.5?'50%':'2px'};
+      width:${5+Math.random()*7}px;height:${5+Math.random()*7}px;
+      animation-delay:${Math.random()*.7}s;animation-duration:${2+Math.random()*1.5}s;`;
+    document.body.appendChild(el);
+    el.addEventListener('animationend',()=>el.remove());
+  }
+}
+
+// ── ADMIN ──────────────────────────────────────────────────────
+function openAdmin(){
+  document.getElementById('adminOver').classList.add('show');
+  if(adminIn){loadAdminPanel();}
+  else{
+    document.getElementById('adminLogin').style.display='block';
+    document.getElementById('adminPanel').style.display='none';
+    document.getElementById('adminPw').value='';
+    document.getElementById('loginErr').textContent='';
+    setTimeout(()=>document.getElementById('adminPw').focus(),300);
+  }
+}
+function closeAdmin(){document.getElementById('adminOver').classList.remove('show');}
+
+function tryLogin(){
+  if(document.getElementById('adminPw').value===PASS){
+    adminIn=true;loadAdminPanel();
+  }else{
+    document.getElementById('loginErr').textContent='Incorrect password.';
+    document.getElementById('adminPw').value='';
+  }
+}
+
+function loadAdminPanel(){
+  document.getElementById('adminLogin').style.display='none';
+  document.getElementById('adminPanel').style.display='block';
+  renderAdminList();
+  document.getElementById('amsg').className='amsg';
+  document.getElementById('amsg').textContent='';
+}
+
+function renderAdminList(){
+  const all=allItems();
+  document.getElementById('poolCount').textContent=all.length;
+  document.getElementById('adminItemList').innerHTML=all.map((it,i)=>{
+    const r=RARITIES.find(r=>r.id===it.rarity)||RARITIES[0];
+    const isC=it.custom;
+    const ci=i-DEFAULT_ITEMS.length;
+    return `<div class="adm-item">
+      <div class="ai-ico">${it.icon}</div>
+      <div class="ai-info">
+        <div class="ai-name">${it.name}
+          <span class="rtag" style="background:${r.color}18;color:${r.color};border:1px solid ${r.color}33">${r.label}</span>
+        </div>
+        <div class="ai-meta">${isC?'Custom':'Default'} · sell ${r.sell}H</div>
+      </div>
+      <span class="ai-tag ${isC?'tag-c':'tag-d'}">${isC?'CUSTOM':'DEFAULT'}</span>
+      ${isC?`<button class="ai-del" onclick="removeItem(${ci})">✕</button>`:'<div style="width:26px"></div>'}
+    </div>`;
+  }).join('');
+  updatePoolLabel();
+}
+
+function updatePreview(){
+  document.getElementById('emojiprev').textContent=document.getElementById('newIcon').value.trim()||'?';
+}
+
+function addItem(){
+  const name=document.getElementById('newName').value.trim();
+  const icon=document.getElementById('newIcon').value.trim();
+  const rid=document.getElementById('newRarity').value;
+  if(!name){showMsg('Item name is required.','err');return;}
+  if(!icon){showMsg('Emoji icon is required.','err');return;}
+  S.customItems.push({name,icon,rarity:rid,custom:true});
+  save();renderAdminList();buildOdds();
+  document.getElementById('newName').value='';
+  document.getElementById('newIcon').value='';
+  document.getElementById('emojiprev').textContent='?';
+  document.getElementById('newRarity').value='common';
+  showMsg(`✓ "${name}" added to pool!`,'ok');
+}
+
+function removeItem(ci){
+  S.customItems.splice(ci,1);
+  save();renderAdminList();buildOdds();
+  showMsg('Item removed from pool.','ok');
+}
+
+function showMsg(txt,type){
+  const el=document.getElementById('amsg');
+  el.textContent=txt;el.className='amsg '+type;
+  clearTimeout(showMsg._t);
+  showMsg._t=setTimeout(()=>{el.className='amsg';el.textContent='';},3200);
+}
+
+function giveH(){
+  S.balance+=200;save();updateBal();
+  showMsg('✓ +200H credited to player!','ok');
+}
+
+function doReset(){
+  if(!confirm('Reset ALL progress? Cannot be undone.'))return;
+  localStorage.removeItem('jpsim3');
+  S=freshState();adminIn=false;
+  closeAdmin();
+  updateBal();updateStats();renderInv();renderHist();
+  seedReel(36);updatePoolLabel();buildOdds();
+  document.getElementById('result').classList.remove('show');
+}
+
+// ── UTILS ──────────────────────────────────────────────────────
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// backdrop taps
+document.getElementById('jpOver').addEventListener('click',e=>{if(e.target.id==='jpOver')closeJP();});
+document.getElementById('adminOver').addEventListener('click',e=>{if(e.target.id==='adminOver')closeAdmin();});
+
+init();
+</script>
+</body>
+</html>
